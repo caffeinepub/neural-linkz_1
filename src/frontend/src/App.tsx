@@ -351,29 +351,6 @@ const OS_MODELS: Record<OSCategory, OSModel[]> = {
 
 // ─── Shared Components ───────────────────────────────────────────────────────
 
-function ICPBadgeSVG() {
-  return (
-    <svg
-      width="28"
-      height="28"
-      viewBox="0 0 28 28"
-      fill="none"
-      xmlns="http://www.w3.org/2000/svg"
-      role="img"
-      aria-label="Internet Computer Protocol"
-    >
-      <circle cx="14" cy="14" r="13" stroke="#18D6D6" strokeWidth="1.5" />
-      <path
-        d="M7 14 Q10 8 14 14 Q18 20 21 14"
-        stroke="#18D6D6"
-        strokeWidth="2"
-        fill="none"
-        strokeLinecap="round"
-      />
-    </svg>
-  );
-}
-
 function AnimatedHamburger({
   isOpen,
   onClick,
@@ -753,8 +730,8 @@ function BottomSheetMenu({
                     }}
                   />
                   <svg
-                    width="14"
-                    height="14"
+                    width="16"
+                    height="16"
                     viewBox="0 0 14 14"
                     fill="none"
                     aria-hidden="true"
@@ -762,14 +739,14 @@ function BottomSheetMenu({
                       position: "absolute",
                       inset: 0,
                       margin: "auto",
-                      opacity: 0.35,
+                      opacity: 0.75,
                       pointerEvents: "none",
                     }}
                   >
                     <path
                       d="M1 1L13 13M13 1L1 13"
                       stroke="white"
-                      strokeWidth="2"
+                      strokeWidth="2.5"
                       strokeLinecap="round"
                     />
                   </svg>
@@ -2809,21 +2786,7 @@ function Footer({ onNavigate }: { onNavigate: (page: Page) => void }) {
               The Onchain AI Directory
             </p>
           </div>
-          <div className="flex flex-col items-center gap-2">
-            <div className="flex items-center gap-2">
-              <ICPBadgeSVG />
-              <a
-                href={caffeineUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-sm font-medium hover:underline"
-                style={{ color: "#A7ADB7" }}
-              >
-                Built with <span style={{ color: "#18D6D6" }}>Caffeine.ai</span>{" "}
-                on ICP
-              </a>
-            </div>
-          </div>
+
           <div className="flex items-center gap-3">
             <a
               data-ocid="footer.link"
