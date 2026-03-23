@@ -1,0 +1,227 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --radius: 1.125rem;
+    /* Neural Linkz dark cyber palette */
+    --background: 0.04 0.005 240;
+    --foreground: 1 0 0;
+    --card: 0.12 0.015 240;
+    --card-foreground: 1 0 0;
+    --popover: 0.14 0.018 240;
+    --popover-foreground: 1 0 0;
+    --primary: 0.78 0.13 195;
+    --primary-foreground: 0.04 0.005 240;
+    --secondary: 0.55 0.25 295;
+    --secondary-foreground: 1 0 0;
+    --muted: 0.2 0.015 240;
+    --muted-foreground: 0.72 0.015 240;
+    --accent: 0.82 0.14 195;
+    --accent-foreground: 0.04 0.005 240;
+    --destructive: 0.577 0.245 27.325;
+    --destructive-foreground: 0.985 0 0;
+    --border: 0.2 0.015 240;
+    --input: 0.2 0.015 240;
+    --ring: 0.78 0.13 195;
+    --chart-1: 0.78 0.13 195;
+    --chart-2: 0.55 0.25 295;
+    --chart-3: 0.82 0.17 85;
+    --chart-4: 0.646 0.222 41.116;
+    --chart-5: 0.6 0.118 184.704;
+    --sidebar: 0.1 0.012 240;
+    --sidebar-foreground: 1 0 0;
+    --sidebar-primary: 0.78 0.13 195;
+    --sidebar-primary-foreground: 0.04 0.005 240;
+    --sidebar-accent: 0.2 0.015 240;
+    --sidebar-accent-foreground: 1 0 0;
+    --sidebar-border: 0.2 0.015 240;
+    --sidebar-ring: 0.78 0.13 195;
+
+    /* Custom semantic tokens */
+    --nl-cyan: #18d6d6;
+    --nl-cyan-bright: #20e3e0;
+    --nl-purple: #a23bff;
+    --nl-gold: #f5c84b;
+    --nl-surface: #11151b;
+    --nl-surface2: #151b22;
+    --nl-border: #232a33;
+    --nl-muted-text: #a7adb7;
+
+    /* ── Liquid Glass Design Tokens ────────────────────────────────────────── */
+    --glass-bg: rgba(255, 255, 255, 0.05);
+    --glass-bg-hover: rgba(255, 255, 255, 0.08);
+    --glass-bg-strong: rgba(255, 255, 255, 0.08);
+    --glass-border: 1px solid rgba(255, 255, 255, 0.12);
+    --glass-border-color: rgba(255, 255, 255, 0.12);
+    --glass-border-hover: rgba(255, 255, 255, 0.2);
+    --glass-blur: blur(30px);
+    --glass-blur-strong: blur(40px);
+    --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+    --glass-inner-glow: inset 0 1px 0 rgba(255, 255, 255, 0.1), inset 0 -1px 0
+      rgba(255, 255, 255, 0.04);
+    --glass-hover-glow: 0 0 20px rgba(255, 255, 255, 0.15), 0 8px 32px
+      rgba(0, 0, 0, 0.5);
+    --glass-transition: all 300ms cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  }
+
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+    font-family: "Space Grotesk", system-ui, sans-serif;
+    background-color: #000000;
+    color: #ffffff;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  html {
+    scroll-behavior: smooth;
+  }
+}
+
+@layer utilities {
+  /* ── Liquid Glass Utilities ─────────────────────────────────────────────── */
+  .glass {
+    background: var(--glass-bg);
+    backdrop-filter: var(--glass-blur);
+    -webkit-backdrop-filter: var(--glass-blur);
+    border: var(--glass-border);
+    box-shadow: var(--glass-shadow), var(--glass-inner-glow);
+  }
+
+  .glass-strong {
+    background: var(--glass-bg-strong);
+    backdrop-filter: var(--glass-blur-strong);
+    -webkit-backdrop-filter: var(--glass-blur-strong);
+    border: var(--glass-border);
+    box-shadow: var(--glass-shadow), var(--glass-inner-glow);
+  }
+
+  .glass-hover {
+    transition: var(--glass-transition);
+  }
+  .glass-hover:hover {
+    background: var(--glass-bg-hover);
+    border-color: var(--glass-border-hover);
+    box-shadow: var(--glass-hover-glow), var(--glass-inner-glow);
+    transform: scale(1.03);
+  }
+
+  .glass-nav {
+    background: rgba(0, 0, 0, 0.6);
+    backdrop-filter: var(--glass-blur);
+    -webkit-backdrop-filter: var(--glass-blur);
+    border-bottom: 1px solid var(--glass-border-color);
+    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.4), var(--glass-inner-glow);
+  }
+
+  .glass-footer {
+    background: rgba(255, 255, 255, 0.03);
+    backdrop-filter: var(--glass-blur);
+    -webkit-backdrop-filter: var(--glass-blur);
+    border-top: 1px solid var(--glass-border-color);
+    box-shadow: var(--glass-inner-glow);
+  }
+
+  .glass-tab-bar {
+    background: rgba(0, 0, 0, 0.7);
+    backdrop-filter: var(--glass-blur);
+    -webkit-backdrop-filter: var(--glass-blur);
+    border-bottom: 1px solid var(--glass-border-color);
+  }
+
+  .glow-cyan {
+    box-shadow: 0 0 20px rgba(24, 214, 214, 0.3), 0 0 40px
+      rgba(24, 214, 214, 0.15);
+  }
+  .glow-cyan-strong {
+    box-shadow: 0 0 30px rgba(24, 214, 214, 0.5), 0 0 60px
+      rgba(24, 214, 214, 0.25), 0 0 100px rgba(24, 214, 214, 0.1);
+  }
+  .glow-purple {
+    box-shadow: 0 0 20px rgba(162, 59, 255, 0.4), 0 0 40px
+      rgba(162, 59, 255, 0.2);
+  }
+  .card-hover {
+    transition: var(--glass-transition);
+  }
+  .card-hover:hover {
+    transform: scale(1.03);
+    box-shadow: var(--glass-hover-glow), var(--glass-inner-glow);
+    border-color: var(--glass-border-hover) !important;
+    background: var(--glass-bg-hover) !important;
+  }
+  .text-gradient-cyan-purple {
+    background: linear-gradient(135deg, #18d6d6 0%, #a23bff 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  .btn-cyan {
+    background: #18d6d6;
+    color: #000;
+    font-weight: 700;
+    transition: box-shadow 200ms ease, transform 200ms ease;
+  }
+  .btn-cyan:hover {
+    box-shadow: 0 0 20px rgba(24, 214, 214, 0.6);
+    transform: translateY(-1px);
+  }
+  .btn-cyan-outline {
+    border: 1.5px solid #18d6d6;
+    color: #18d6d6;
+    background: transparent;
+    font-weight: 600;
+    transition: background 200ms ease, box-shadow 200ms ease, transform 200ms
+      ease;
+  }
+  .ai-logo {
+    transition: transform 200ms ease, box-shadow 200ms ease;
+  }
+  .ai-logo:hover {
+    transform: scale(1.08);
+    box-shadow: 0 0 16px rgba(255, 255, 255, 0.25), 0 0 6px
+      rgba(24, 214, 214, 0.3);
+  }
+  .btn-cyan-outline:hover {
+    background: rgba(24, 214, 214, 0.1);
+    box-shadow: 0 0 14px rgba(24, 214, 214, 0.3);
+    transform: translateY(-1px);
+  }
+}
+
+/* Hamburger spiral pulse — only fires while .spiral-pulsing is active */
+@keyframes spiral-pulse {
+  0%,
+  100% {
+    opacity: 0.5;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+.spiral-pulsing .spiral-ring {
+  animation: spiral-pulse 150ms ease-in-out 2;
+}
+
+/* iOS safe-area bottom padding for bottom sheet footer */
+@supports (padding-bottom: env(safe-area-inset-bottom)) {
+  .bottom-sheet-footer {
+    padding-bottom: calc(20px + env(safe-area-inset-bottom));
+  }
+}
+
+/* OS tabs row — hide scrollbar across browsers */
+.os-tabs-row::-webkit-scrollbar {
+  display: none;
+}
+.os-tabs-row {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
