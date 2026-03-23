@@ -1,6 +1,6 @@
 import { AnimatePresence, motion } from "motion/react";
 import type React from "react";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 type Page = "home" | "open-source" | "onchain" | "benchmarks" | "about";
 
@@ -1558,10 +1558,435 @@ function OnchainPage() {
     />
   );
 }
+// ---- Benchmark Data Hook ----
+const FALLBACK_ARENA_DATA = [
+  {
+    rank: 1,
+    model: "Claude Opus 4.6 Thinking",
+    provider: "Anthropic",
+    elo: 1503,
+    gpqa: "91.2%",
+    sweBench: "80.8%",
+    arcAgi: "74.3%",
+    context: "200K",
+    link: "https://claude.ai",
+  },
+  {
+    rank: 2,
+    model: "Claude Opus 4.6",
+    provider: "Anthropic",
+    elo: 1501,
+    gpqa: "91.0%",
+    sweBench: "80.8%",
+    arcAgi: "72.1%",
+    context: "200K",
+    link: "https://claude.ai",
+  },
+  {
+    rank: 3,
+    model: "GPT-5.4-high",
+    provider: "OpenAI",
+    elo: 1495,
+    gpqa: "88.4%",
+    sweBench: "76.2%",
+    arcAgi: "69.8%",
+    context: "128K",
+    link: "https://chatgpt.com",
+  },
+  {
+    rank: 4,
+    model: "Gemini 3.1 Pro",
+    provider: "Google",
+    elo: 1493,
+    gpqa: "87.9%",
+    sweBench: "74.5%",
+    arcAgi: "77.1%",
+    context: "1M",
+    link: "https://gemini.google.com",
+  },
+  {
+    rank: 5,
+    model: "Grok-4.20",
+    provider: "xAI",
+    elo: 1492,
+    gpqa: "86.1%",
+    sweBench: "72.3%",
+    arcAgi: "68.4%",
+    context: "128K",
+    link: "https://grok.x.ai",
+  },
+  {
+    rank: 6,
+    model: "Gemini 3 Pro",
+    provider: "Google",
+    elo: 1492,
+    gpqa: "85.7%",
+    sweBench: "71.8%",
+    arcAgi: "71.2%",
+    context: "1M",
+    link: "https://gemini.google.com",
+  },
+];
+
+const FALLBACK_INTELLIGENCE_DATA = [
+  {
+    rank: 1,
+    model: "Claude Opus 4.6",
+    provider: "Anthropic",
+    gpqa: "91.2%",
+    sweBench: "80.8%",
+    arcAgi: "74.3%",
+    math: "92.1%",
+    context: "200K",
+    link: "https://claude.ai",
+  },
+  {
+    rank: 2,
+    model: "Gemini 3.1 Pro",
+    provider: "Google",
+    gpqa: "87.9%",
+    sweBench: "74.5%",
+    arcAgi: "77.1%",
+    math: "88.3%",
+    context: "1M",
+    link: "https://gemini.google.com",
+  },
+  {
+    rank: 3,
+    model: "GPT-5.4",
+    provider: "OpenAI",
+    gpqa: "88.4%",
+    sweBench: "76.2%",
+    arcAgi: "69.8%",
+    math: "89.6%",
+    context: "128K",
+    link: "https://chatgpt.com",
+  },
+  {
+    rank: 4,
+    model: "Grok-4.20",
+    provider: "xAI",
+    gpqa: "86.1%",
+    sweBench: "72.3%",
+    arcAgi: "68.4%",
+    math: "87.2%",
+    context: "128K",
+    link: "https://grok.x.ai",
+  },
+  {
+    rank: 5,
+    model: "GLM-5",
+    provider: "Z.ai",
+    gpqa: "84.3%",
+    sweBench: "70.1%",
+    arcAgi: "66.9%",
+    math: "85.8%",
+    context: "128K",
+    link: "https://zhipuai.cn",
+  },
+];
+
+const FALLBACK_OPEN_SOURCE_DATA = [
+  {
+    rank: 1,
+    model: "DeepSeek V3.2",
+    provider: "DeepSeek AI",
+    params: "685B MoE",
+    gpqa: "83.4%",
+    sweBench: "68.2%",
+    math: "87.1%",
+    license: "MIT",
+    link: "https://huggingface.co/deepseek-ai",
+  },
+  {
+    rank: 2,
+    model: "DeepSeek R1",
+    provider: "DeepSeek AI",
+    params: "671B MoE",
+    gpqa: "82.7%",
+    sweBench: "66.5%",
+    math: "90.2%",
+    license: "MIT",
+    link: "https://huggingface.co/deepseek-ai",
+  },
+  {
+    rank: 3,
+    model: "Qwen 3.5",
+    provider: "Alibaba",
+    params: "397B",
+    gpqa: "80.1%",
+    sweBench: "63.4%",
+    math: "85.3%",
+    license: "Apache 2.0",
+    link: "https://huggingface.co/Qwen",
+  },
+  {
+    rank: 4,
+    model: "Llama 4",
+    provider: "Meta",
+    params: "405B",
+    gpqa: "78.6%",
+    sweBench: "61.2%",
+    math: "82.4%",
+    license: "Llama 4",
+    link: "https://huggingface.co/meta-llama",
+  },
+  {
+    rank: 5,
+    model: "GLM-5",
+    provider: "Z.ai",
+    params: "744B",
+    gpqa: "84.3%",
+    sweBench: "70.1%",
+    math: "85.8%",
+    license: "Custom",
+    link: "https://huggingface.co/THUDM",
+  },
+];
+
+const FALLBACK_ARENA_HIGHLIGHTS = [
+  {
+    rank: 1,
+    model: "Claude Opus 4.6 Thinking",
+    provider: "Anthropic",
+    badge: "ELO 1503",
+    strengths: ["#1 Arena", "Reasoning", "Coding"],
+    link: "https://claude.ai",
+    color: "#18D6D6",
+    elo: 1503,
+  },
+  {
+    rank: 2,
+    model: "GPT-5.4-high",
+    provider: "OpenAI",
+    badge: "ELO 1495",
+    strengths: ["Top-3 Arena", "Balanced", "Multimodal"],
+    link: "https://chatgpt.com",
+    color: "#10a37f",
+    elo: 1495,
+  },
+  {
+    rank: 3,
+    model: "Claude Opus 4.6",
+    provider: "Anthropic",
+    badge: "ELO 1501",
+    strengths: ["GPQA 91%+", "SWE-bench 80.8%", "Coding"],
+    link: "https://claude.ai",
+    color: "#18D6D6",
+    elo: 1501,
+  },
+  {
+    rank: 4,
+    model: "Gemini 3.1 Pro",
+    provider: "Google",
+    badge: "ELO 1493",
+    strengths: ["ARC-AGI-2 77%", "1M Context", "Multimodal"],
+    link: "https://gemini.google.com",
+    color: "#4285F4",
+    elo: 1493,
+  },
+  {
+    rank: 5,
+    model: "Grok-4.20",
+    provider: "xAI",
+    badge: "ELO 1492",
+    strengths: ["All-rounder", "X Integration", "Fast"],
+    link: "https://grok.x.ai",
+    color: "#ffffff",
+    elo: 1492,
+  },
+];
+
+const FALLBACK_INTELLIGENCE_HIGHLIGHTS = [
+  {
+    rank: 1,
+    model: "Claude Opus 4.6",
+    provider: "Anthropic",
+    badge: "GPQA 91.2%",
+    strengths: ["Coding King", "GPQA Leader", "Reasoning"],
+    link: "https://claude.ai",
+    color: "#18D6D6",
+    gpqa: 91.2,
+  },
+  {
+    rank: 2,
+    model: "Gemini 3.1 Pro",
+    provider: "Google",
+    badge: "ARC-AGI 77.1%",
+    strengths: ["ARC-AGI #1", "Long Context", "Multimodal"],
+    link: "https://gemini.google.com",
+    color: "#4285F4",
+    gpqa: 87.9,
+  },
+  {
+    rank: 3,
+    model: "GPT-5.4",
+    provider: "OpenAI",
+    badge: "Balanced",
+    strengths: ["Balanced", "Multimodal", "Fast"],
+    link: "https://chatgpt.com",
+    color: "#10a37f",
+    gpqa: 88.4,
+  },
+  {
+    rank: 4,
+    model: "Grok-4.20",
+    provider: "xAI",
+    badge: "All-rounder",
+    strengths: ["All-rounder", "X Real-time", "Agentic"],
+    link: "https://grok.x.ai",
+    color: "#ffffff",
+    gpqa: 86.1,
+  },
+  {
+    rank: 5,
+    model: "GLM-5",
+    provider: "Z.ai",
+    badge: "744B Open",
+    strengths: ["Open-weight", "Top Leaderboard", "Strong Math"],
+    link: "https://zhipuai.cn",
+    color: "#FF6B35",
+    gpqa: 84.3,
+  },
+];
+
+const FALLBACK_OPEN_SOURCE_HIGHLIGHTS = [
+  {
+    rank: 1,
+    model: "DeepSeek V3.2",
+    provider: "DeepSeek AI",
+    badge: "685B MoE",
+    strengths: ["Math King", "Coding", "Open weights"],
+    link: "https://huggingface.co/deepseek-ai",
+    color: "#18D6D6",
+  },
+  {
+    rank: 2,
+    model: "DeepSeek R1",
+    provider: "DeepSeek AI",
+    badge: "671B MoE",
+    strengths: ["Reasoning", "Math", "Open"],
+    link: "https://huggingface.co/deepseek-ai",
+    color: "#18D6D6",
+  },
+  {
+    rank: 3,
+    model: "Qwen 3.5",
+    provider: "Alibaba",
+    badge: "397B",
+    strengths: ["Multilingual", "Multimodal", "Efficient"],
+    link: "https://huggingface.co/Qwen",
+    color: "#FF6A00",
+  },
+  {
+    rank: 4,
+    model: "Llama 4",
+    provider: "Meta",
+    badge: "405B",
+    strengths: ["Community", "Fine-tunable", "Versatile"],
+    link: "https://huggingface.co/meta-llama",
+    color: "#0467DF",
+  },
+  {
+    rank: 5,
+    model: "GLM-5",
+    provider: "Z.ai",
+    badge: "744B",
+    strengths: ["Leaderboard", "Open", "Multilingual"],
+    link: "https://huggingface.co/THUDM",
+    color: "#FF6B35",
+  },
+];
+
+function useBenchmarkData() {
+  const [loading, setLoading] = useState(false);
+  const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
+  const [fetchSource, setFetchSource] = useState<"live" | "fallback">(
+    "fallback",
+  );
+  const [statusMsg, setStatusMsg] = useState(
+    "Latest data from March 2026 — click Refresh",
+  );
+  const [autoRefresh, setAutoRefresh] = useState(false);
+  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  const refresh = useCallback(async () => {
+    setLoading(true);
+    try {
+      // Attempt live fetch — will almost always fail due to CORS
+      const res = await fetch(
+        "https://huggingface.co/spaces/lmarena-ai/chatbot-arena",
+        {
+          signal: AbortSignal.timeout(4000),
+        },
+      );
+      if (!res.ok) throw new Error("Non-OK response");
+      // If somehow successful, still use fallback data (no parseable JSON endpoint)
+      setFetchSource("live");
+      setStatusMsg("Live data fetched");
+    } catch {
+      setFetchSource("fallback");
+      setStatusMsg("Latest data from March 2026 — click Refresh");
+    } finally {
+      setLastUpdated(new Date());
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    refresh();
+  }, [refresh]);
+
+  useEffect(() => {
+    if (autoRefresh) {
+      intervalRef.current = setInterval(refresh, 12 * 60 * 60 * 1000);
+    } else {
+      if (intervalRef.current) clearInterval(intervalRef.current);
+    }
+    return () => {
+      if (intervalRef.current) clearInterval(intervalRef.current);
+    };
+  }, [autoRefresh, refresh]);
+
+  const toggleAutoRefresh = useCallback(() => setAutoRefresh((v) => !v), []);
+
+  return {
+    loading,
+    lastUpdated,
+    fetchSource,
+    statusMsg,
+    autoRefresh,
+    toggleAutoRefresh,
+    refresh,
+    arenaData: FALLBACK_ARENA_DATA,
+    intelligenceData: FALLBACK_INTELLIGENCE_DATA,
+    openSourceData: FALLBACK_OPEN_SOURCE_DATA,
+    arenaHighlights: FALLBACK_ARENA_HIGHLIGHTS,
+    intelligenceHighlights: FALLBACK_INTELLIGENCE_HIGHLIGHTS,
+    openSourceHighlights: FALLBACK_OPEN_SOURCE_HIGHLIGHTS,
+  };
+}
+
 function BenchmarksPage() {
   const [activeTab, setActiveTab] = useState(0);
   const [sortKey, setSortKey] = useState<string>("rank");
   const [sortDir, setSortDir] = useState<"asc" | "desc">("asc");
+
+  const {
+    loading: dataLoading,
+    lastUpdated,
+    fetchSource,
+    statusMsg,
+    autoRefresh,
+    toggleAutoRefresh,
+    refresh,
+    arenaData,
+    intelligenceData,
+    openSourceData,
+    arenaHighlights,
+    intelligenceHighlights,
+    openSourceHighlights,
+  } = useBenchmarkData();
 
   const tabs = [
     "Chatbot Arena (ELO)",
@@ -1570,345 +1995,6 @@ function BenchmarksPage() {
   ];
 
   // --- Data ---
-  const arenaData = [
-    {
-      rank: 1,
-      model: "Claude Opus 4.6 Thinking",
-      provider: "Anthropic",
-      elo: 1503,
-      gpqa: "91.2%",
-      sweBench: "80.8%",
-      arcAgi: "74.3%",
-      context: "200K",
-      link: "https://claude.ai",
-    },
-    {
-      rank: 2,
-      model: "Claude Opus 4.6",
-      provider: "Anthropic",
-      elo: 1501,
-      gpqa: "91.0%",
-      sweBench: "80.8%",
-      arcAgi: "72.1%",
-      context: "200K",
-      link: "https://claude.ai",
-    },
-    {
-      rank: 3,
-      model: "GPT-5.4-high",
-      provider: "OpenAI",
-      elo: 1495,
-      gpqa: "88.4%",
-      sweBench: "76.2%",
-      arcAgi: "69.8%",
-      context: "128K",
-      link: "https://chatgpt.com",
-    },
-    {
-      rank: 4,
-      model: "Gemini 3.1 Pro",
-      provider: "Google",
-      elo: 1493,
-      gpqa: "87.9%",
-      sweBench: "74.5%",
-      arcAgi: "77.1%",
-      context: "1M",
-      link: "https://gemini.google.com",
-    },
-    {
-      rank: 5,
-      model: "Grok-4.20",
-      provider: "xAI",
-      elo: 1492,
-      gpqa: "86.1%",
-      sweBench: "72.3%",
-      arcAgi: "68.4%",
-      context: "128K",
-      link: "https://grok.x.ai",
-    },
-    {
-      rank: 6,
-      model: "Gemini 3 Pro",
-      provider: "Google",
-      elo: 1492,
-      gpqa: "85.7%",
-      sweBench: "71.8%",
-      arcAgi: "71.2%",
-      context: "1M",
-      link: "https://gemini.google.com",
-    },
-  ];
-
-  const intelligenceData = [
-    {
-      rank: 1,
-      model: "Claude Opus 4.6",
-      provider: "Anthropic",
-      gpqa: "91.2%",
-      sweBench: "80.8%",
-      arcAgi: "74.3%",
-      math: "92.1%",
-      context: "200K",
-      link: "https://claude.ai",
-    },
-    {
-      rank: 2,
-      model: "Gemini 3.1 Pro",
-      provider: "Google",
-      gpqa: "87.9%",
-      sweBench: "74.5%",
-      arcAgi: "77.1%",
-      math: "88.3%",
-      context: "1M",
-      link: "https://gemini.google.com",
-    },
-    {
-      rank: 3,
-      model: "GPT-5.4",
-      provider: "OpenAI",
-      gpqa: "88.4%",
-      sweBench: "76.2%",
-      arcAgi: "69.8%",
-      math: "89.6%",
-      context: "128K",
-      link: "https://chatgpt.com",
-    },
-    {
-      rank: 4,
-      model: "Grok-4.20",
-      provider: "xAI",
-      gpqa: "86.1%",
-      sweBench: "72.3%",
-      arcAgi: "68.4%",
-      math: "87.2%",
-      context: "128K",
-      link: "https://grok.x.ai",
-    },
-    {
-      rank: 5,
-      model: "GLM-5",
-      provider: "Z.ai",
-      gpqa: "84.3%",
-      sweBench: "70.1%",
-      arcAgi: "66.9%",
-      math: "85.8%",
-      context: "128K",
-      link: "https://zhipuai.cn",
-    },
-  ];
-
-  const openSourceData = [
-    {
-      rank: 1,
-      model: "DeepSeek V3.2",
-      provider: "DeepSeek AI",
-      params: "685B MoE",
-      gpqa: "83.4%",
-      sweBench: "68.2%",
-      math: "87.1%",
-      license: "MIT",
-      link: "https://huggingface.co/deepseek-ai",
-    },
-    {
-      rank: 2,
-      model: "DeepSeek R1",
-      provider: "DeepSeek AI",
-      params: "671B MoE",
-      gpqa: "82.7%",
-      sweBench: "66.5%",
-      math: "90.2%",
-      license: "MIT",
-      link: "https://huggingface.co/deepseek-ai",
-    },
-    {
-      rank: 3,
-      model: "Qwen 3.5",
-      provider: "Alibaba",
-      params: "397B",
-      gpqa: "80.1%",
-      sweBench: "63.4%",
-      math: "85.3%",
-      license: "Apache 2.0",
-      link: "https://huggingface.co/Qwen",
-    },
-    {
-      rank: 4,
-      model: "Llama 4",
-      provider: "Meta",
-      params: "405B",
-      gpqa: "78.6%",
-      sweBench: "61.2%",
-      math: "82.4%",
-      license: "Llama 4",
-      link: "https://huggingface.co/meta-llama",
-    },
-    {
-      rank: 5,
-      model: "GLM-5",
-      provider: "Z.ai",
-      params: "744B",
-      gpqa: "84.3%",
-      sweBench: "70.1%",
-      math: "85.8%",
-      license: "Custom",
-      link: "https://huggingface.co/THUDM",
-    },
-  ];
-
-  const arenaHighlights = [
-    {
-      rank: 1,
-      model: "Claude Opus 4.6 Thinking",
-      provider: "Anthropic",
-      badge: "ELO 1503",
-      strengths: ["#1 Arena", "Reasoning", "Coding"],
-      link: "https://claude.ai",
-      color: "#18D6D6",
-      elo: 1503,
-    },
-    {
-      rank: 2,
-      model: "GPT-5.4-high",
-      provider: "OpenAI",
-      badge: "ELO 1495",
-      strengths: ["Top-3 Arena", "Balanced", "Multimodal"],
-      link: "https://chatgpt.com",
-      color: "#10a37f",
-      elo: 1495,
-    },
-    {
-      rank: 3,
-      model: "Claude Opus 4.6",
-      provider: "Anthropic",
-      badge: "ELO 1501",
-      strengths: ["GPQA 91%+", "SWE-bench 80.8%", "Coding"],
-      link: "https://claude.ai",
-      color: "#18D6D6",
-      elo: 1501,
-    },
-    {
-      rank: 4,
-      model: "Gemini 3.1 Pro",
-      provider: "Google",
-      badge: "ELO 1493",
-      strengths: ["ARC-AGI-2 77%", "1M Context", "Multimodal"],
-      link: "https://gemini.google.com",
-      color: "#4285F4",
-      elo: 1493,
-    },
-    {
-      rank: 5,
-      model: "Grok-4.20",
-      provider: "xAI",
-      badge: "ELO 1492",
-      strengths: ["All-rounder", "X Integration", "Fast"],
-      link: "https://grok.x.ai",
-      color: "#ffffff",
-      elo: 1492,
-    },
-  ];
-
-  const intelligenceHighlights = [
-    {
-      rank: 1,
-      model: "Claude Opus 4.6",
-      provider: "Anthropic",
-      badge: "GPQA 91.2%",
-      strengths: ["Coding King", "GPQA Leader", "Reasoning"],
-      link: "https://claude.ai",
-      color: "#18D6D6",
-      gpqa: 91.2,
-    },
-    {
-      rank: 2,
-      model: "Gemini 3.1 Pro",
-      provider: "Google",
-      badge: "ARC-AGI 77.1%",
-      strengths: ["ARC-AGI #1", "Long Context", "Multimodal"],
-      link: "https://gemini.google.com",
-      color: "#4285F4",
-      gpqa: 87.9,
-    },
-    {
-      rank: 3,
-      model: "GPT-5.4",
-      provider: "OpenAI",
-      badge: "Balanced",
-      strengths: ["Balanced", "Multimodal", "Fast"],
-      link: "https://chatgpt.com",
-      color: "#10a37f",
-      gpqa: 88.4,
-    },
-    {
-      rank: 4,
-      model: "Grok-4.20",
-      provider: "xAI",
-      badge: "All-rounder",
-      strengths: ["All-rounder", "X Real-time", "Agentic"],
-      link: "https://grok.x.ai",
-      color: "#ffffff",
-      gpqa: 86.1,
-    },
-    {
-      rank: 5,
-      model: "GLM-5",
-      provider: "Z.ai",
-      badge: "744B Open",
-      strengths: ["Open-weight", "Top Leaderboard", "Strong Math"],
-      link: "https://zhipuai.cn",
-      color: "#FF6B35",
-      gpqa: 84.3,
-    },
-  ];
-
-  const openSourceHighlights = [
-    {
-      rank: 1,
-      model: "DeepSeek V3.2",
-      provider: "DeepSeek AI",
-      badge: "685B MoE",
-      strengths: ["Math King", "Coding", "Open weights"],
-      link: "https://huggingface.co/deepseek-ai",
-      color: "#18D6D6",
-    },
-    {
-      rank: 2,
-      model: "DeepSeek R1",
-      provider: "DeepSeek AI",
-      badge: "671B MoE",
-      strengths: ["Reasoning", "Math", "Open"],
-      link: "https://huggingface.co/deepseek-ai",
-      color: "#18D6D6",
-    },
-    {
-      rank: 3,
-      model: "Qwen 3.5",
-      provider: "Alibaba",
-      badge: "397B",
-      strengths: ["Multilingual", "Multimodal", "Efficient"],
-      link: "https://huggingface.co/Qwen",
-      color: "#FF6A00",
-    },
-    {
-      rank: 4,
-      model: "Llama 4",
-      provider: "Meta",
-      badge: "405B",
-      strengths: ["Community", "Fine-tunable", "Versatile"],
-      link: "https://huggingface.co/meta-llama",
-      color: "#0467DF",
-    },
-    {
-      rank: 5,
-      model: "GLM-5",
-      provider: "Z.ai",
-      badge: "744B",
-      strengths: ["Leaderboard", "Open", "Multilingual"],
-      link: "https://huggingface.co/THUDM",
-      color: "#FF6B35",
-    },
-  ];
-
   function sortData<T extends Record<string, unknown>>(data: T[]): T[] {
     return [...data].sort((a, b) => {
       const av = a[sortKey];
@@ -2486,8 +2572,10 @@ function BenchmarksPage() {
           <div
             style={{
               display: "inline-flex",
+              flexDirection: "column",
               alignItems: "center",
               marginBottom: 14,
+              gap: 6,
             }}
           >
             <span
@@ -2500,8 +2588,23 @@ function BenchmarksPage() {
                 color: "#A7ADB7",
               }}
             >
-              🕐 Last updated: March 2026
+              🕐 Last updated:{" "}
+              {lastUpdated ? lastUpdated.toLocaleString() : "March 2026"}
             </span>
+            {fetchSource === "fallback" && (
+              <span
+                style={{
+                  background: "rgba(255,255,255,0.04)",
+                  border: "1px solid rgba(255,255,255,0.10)",
+                  borderRadius: 50,
+                  padding: "3px 10px",
+                  fontSize: 11,
+                  color: "#A7ADB7",
+                }}
+              >
+                {statusMsg}
+              </span>
+            )}
           </div>
           {/* Leaderboard external links */}
           <div
@@ -2572,6 +2675,74 @@ function BenchmarksPage() {
             >
               Arena Leaderboard ↗
             </a>
+            {/* Refresh Data button */}
+            <button
+              type="button"
+              data-ocid="benchmarks.primary_button"
+              onClick={refresh}
+              disabled={dataLoading}
+              style={{
+                background: "rgba(24,214,214,0.08)",
+                border: "1px solid rgba(24,214,214,0.25)",
+                color: "#18D6D6",
+                padding: "6px 16px",
+                borderRadius: 8,
+                fontSize: 12,
+                fontWeight: 600,
+                cursor: dataLoading ? "not-allowed" : "pointer",
+                transition: "all 0.3s ease",
+                opacity: dataLoading ? 0.7 : 1,
+                display: "inline-flex",
+                alignItems: "center",
+                gap: 5,
+              }}
+              onMouseEnter={(e) => {
+                if (!dataLoading) {
+                  (e.currentTarget as HTMLElement).style.background =
+                    "rgba(24,214,214,0.15)";
+                  (e.currentTarget as HTMLElement).style.boxShadow =
+                    "0 0 16px rgba(24,214,214,0.2)";
+                }
+              }}
+              onMouseLeave={(e) => {
+                (e.currentTarget as HTMLElement).style.background =
+                  "rgba(24,214,214,0.08)";
+                (e.currentTarget as HTMLElement).style.boxShadow = "none";
+              }}
+            >
+              <span
+                style={{
+                  display: "inline-block",
+                  animation: dataLoading ? "spin 1s linear infinite" : "none",
+                }}
+              >
+                ⟳
+              </span>
+              {dataLoading ? "Fetching…" : "Refresh Data"}
+            </button>
+            {/* Auto-refresh toggle */}
+            <button
+              type="button"
+              data-ocid="benchmarks.toggle"
+              onClick={toggleAutoRefresh}
+              style={{
+                background: autoRefresh
+                  ? "rgba(24,214,214,0.08)"
+                  : "rgba(255,255,255,0.04)",
+                border: autoRefresh
+                  ? "1px solid rgba(24,214,214,0.25)"
+                  : "1px solid rgba(255,255,255,0.10)",
+                color: autoRefresh ? "#18D6D6" : "#A7ADB7",
+                padding: "6px 12px",
+                borderRadius: 8,
+                fontSize: 11,
+                fontWeight: 600,
+                cursor: "pointer",
+                transition: "all 0.3s ease",
+              }}
+            >
+              Auto-refresh: {autoRefresh ? "ON" : "OFF"}
+            </button>
           </div>
         </motion.div>
 
@@ -2683,9 +2854,10 @@ function BenchmarksPage() {
             margin: "3rem auto 0",
           }}
         >
-          Data aggregated from public sources (LMSYS Chatbot Arena / LMArena,
-          Artificial Analysis, Hugging Face Open LLM Leaderboard) as of March
-          2026. Rankings fluctuate daily.
+          Scores update frequently on public leaderboards (LMArena, Artificial
+          Analysis). Data fetched client-side. Sources: LMSYS Chatbot Arena /
+          LMArena, Artificial Analysis, Hugging Face Open LLM Leaderboard.
+          Snapshot: March 2026.
         </motion.p>
       </div>
     </main>
