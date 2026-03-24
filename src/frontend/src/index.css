@@ -63,7 +63,8 @@
       rgba(255, 255, 255, 0.04);
     --glass-hover-glow: 0 0 20px rgba(255, 255, 255, 0.15), 0 8px 32px
       rgba(0, 0, 0, 0.5);
-    --glass-transition: all 300ms cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    --glass-transition: transform 300ms cubic-bezier(0.25, 0.46, 0.45, 0.94),
+      opacity 300ms cubic-bezier(0.25, 0.46, 0.45, 0.94);
   }
 
   * {
@@ -85,6 +86,29 @@
 }
 
 @layer utilities {
+  /* ── GPU Compositing — Force hardware layer on all animated elements ──── */
+  .glass,
+  .glass-strong,
+  .glass-nav,
+  .glass-footer,
+  .glass-tab-bar,
+  .glass-hover,
+  .card-hover,
+  .ai-logo,
+  .btn-cyan,
+  .btn-cyan-outline,
+  [class*="card"],
+  [class*="sheet"],
+  [class*="tab"],
+  [class*="btn"],
+  [class*="button"],
+  .neural-orb-container,
+  .neural-orb-inner {
+    transform: translateZ(0);
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+  }
+
   /* ── Liquid Glass Utilities ─────────────────────────────────────────────── */
   .glass {
     background: var(--glass-bg);
@@ -109,7 +133,7 @@
     background: var(--glass-bg-hover);
     border-color: var(--glass-border-hover);
     box-shadow: var(--glass-hover-glow), var(--glass-inner-glow);
-    transform: scale(1.03);
+    transform: translateZ(0) scale(1.03);
   }
 
   .glass-nav {
@@ -148,10 +172,11 @@
       rgba(162, 59, 255, 0.2);
   }
   .card-hover {
-    transition: var(--glass-transition);
+    transition: transform 300ms cubic-bezier(0.25, 0.46, 0.45, 0.94), opacity
+      300ms cubic-bezier(0.25, 0.46, 0.45, 0.94);
   }
   .card-hover:hover {
-    transform: scale(1.03);
+    transform: translateZ(0) scale(1.03);
     box-shadow: var(--glass-hover-glow), var(--glass-inner-glow);
     border-color: var(--glass-border-hover) !important;
     background: var(--glass-bg-hover) !important;
@@ -170,7 +195,7 @@
   }
   .btn-cyan:hover {
     box-shadow: 0 0 20px rgba(24, 214, 214, 0.6);
-    transform: translateY(-1px);
+    transform: translateZ(0) translateY(-1px);
   }
   .btn-cyan-outline {
     border: 1.5px solid #18d6d6;
@@ -181,33 +206,18 @@
       ease;
   }
   .ai-logo {
-    transition: transform 200ms ease, box-shadow 200ms ease;
+    transition: transform 200ms ease;
   }
   .ai-logo:hover {
-    transform: scale(1.08);
+    transform: translateZ(0) scale(1.08);
     box-shadow: 0 0 16px rgba(255, 255, 255, 0.25), 0 0 6px
       rgba(24, 214, 214, 0.3);
   }
   .btn-cyan-outline:hover {
     background: rgba(24, 214, 214, 0.1);
     box-shadow: 0 0 14px rgba(24, 214, 214, 0.3);
-    transform: translateY(-1px);
+    transform: translateZ(0) translateY(-1px);
   }
-}
-
-/* Hamburger spiral pulse — only fires while .spiral-pulsing is active */
-@keyframes spiral-pulse {
-  0%,
-  100% {
-    opacity: 0.5;
-  }
-  50% {
-    opacity: 1;
-  }
-}
-
-.spiral-pulsing .spiral-ring {
-  animation: spiral-pulse 150ms ease-in-out 2;
 }
 
 /* iOS safe-area bottom padding for bottom sheet footer */
@@ -242,5 +252,22 @@
   }
   50% {
     opacity: 0.3;
+  }
+}
+
+/* ── Reduce Motion — Full instant fallback ─────────────────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+
+  .neural-orb-container,
+  .neural-orb-inner {
+    animation: none !important;
   }
 }
