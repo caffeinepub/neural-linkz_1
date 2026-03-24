@@ -3,6 +3,17 @@ import React, { useState } from "react";
 import { AI_MODELS, GROK_FALLBACK, GROK_LOGO } from "../data";
 import type { AIModel } from "../types";
 
+// Brightness/contrast filters for new icons that need dark-mode visibility boost.
+// Only these 6 model IDs are affected; all existing cards remain unchanged.
+const NEW_ICON_FILTERS: Record<string, string> = {
+  udio: "brightness(1.1) saturate(1.2)",
+  suno: "brightness(1.05) saturate(1.1)",
+  llama: "brightness(1.1) contrast(1.05)",
+  mistral: "brightness(1.1) saturate(1.15)",
+  glm: "brightness(1.4) contrast(1.1) saturate(0.9)",
+  "minimax-music": "brightness(1.1) saturate(1.1)",
+};
+
 function AILogoImg({
   src,
   alt,
@@ -75,6 +86,9 @@ const AICard = React.memo(function AICard({
 }: { model: AIModel; index: number }) {
   const [logoHovered, setLogoHovered] = useState(false);
 
+  // Only apply filter to the 6 newly added icons
+  const iconFilter = NEW_ICON_FILTERS[model.id] ?? undefined;
+
   return (
     <motion.div
       data-ocid={`ai.item.${index + 1}`}
@@ -86,7 +100,7 @@ const AICard = React.memo(function AICard({
         damping: 26,
         delay: index * 0.05,
       }}
-      className="card-hover group flex flex-col rounded-2xl p-3 sm:p-4 cursor-pointer"
+      className="card-hover group flex flex-col items-center text-center rounded-2xl p-3 sm:p-4 cursor-pointer"
       style={{
         background: "rgba(255,255,255,0.05)",
         backdropFilter: "blur(30px)",
@@ -96,61 +110,68 @@ const AICard = React.memo(function AICard({
           "0 8px 32px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.1)",
         transform: "translateZ(0)",
         backfaceVisibility: "hidden",
+        minHeight: "245px",
       }}
     >
-      <div className="flex items-start gap-2 sm:gap-3 mb-3">
-        <div
-          onMouseEnter={() => setLogoHovered(true)}
-          onMouseLeave={() => setLogoHovered(false)}
-          className="flex-shrink-0"
+      {/* Icon centered at top */}
+      <div
+        onMouseEnter={() => setLogoHovered(true)}
+        onMouseLeave={() => setLogoHovered(false)}
+        className="mx-auto mb-2 flex-shrink-0"
+        style={{
+          borderRadius: "12px",
+          transition: "border-color 0.2s, box-shadow 0.2s",
+        }}
+      >
+        <AILogoImg
+          src={model.logo}
+          alt={`${model.name} logo`}
+          fallbackText={model.id}
+          className="ai-logo w-[72px] h-[72px] sm:w-[88px] sm:h-[88px] flex-shrink-0 rounded-xl object-contain bg-black/30 p-1.5"
           style={{
-            borderRadius: "12px",
-            transition: "border-color 0.2s, box-shadow 0.2s",
+            border: logoHovered
+              ? "1px solid rgba(255,255,255,0.12)"
+              : "1px solid rgba(255,255,255,0.08)",
+            boxShadow: logoHovered
+              ? "0 0 16px rgba(255,255,255,0.15), inset 0 0 8px rgba(255,255,255,0.05)"
+              : "none",
+            transition: "border-color 0.2s, box-shadow 0.2s, filter 0.2s",
+            filter: iconFilter,
           }}
-        >
-          <AILogoImg
-            src={model.logo}
-            alt={`${model.name} logo`}
-            fallbackText={model.id}
-            className="ai-logo w-[72px] h-[72px] sm:w-[88px] sm:h-[88px] flex-shrink-0 rounded-xl object-contain bg-black/30 p-1.5"
-            style={{
-              border: logoHovered
-                ? "1px solid rgba(255,255,255,0.12)"
-                : "1px solid rgba(255,255,255,0.08)",
-              boxShadow: logoHovered
-                ? "0 0 16px rgba(255,255,255,0.15), inset 0 0 8px rgba(255,255,255,0.05)"
-                : "none",
-              transition: "border-color 0.2s, box-shadow 0.2s",
-            }}
-          />
-        </div>
-        <div className="flex-1 min-w-0">
-          <h3
-            className="font-bold text-white leading-tight"
-            style={{
-              fontSize: "clamp(12px, 3.5vw, 16px)",
-              wordBreak: "break-word",
-              overflowWrap: "break-word",
-              whiteSpace: "normal",
-              display: "-webkit-box",
-              WebkitLineClamp: 2,
-              WebkitBoxOrient: "vertical",
-              overflow: "hidden",
-            }}
-          >
-            {model.name}
-          </h3>
-          <p className="text-xs mt-0.5" style={{ color: "#A7ADB7" }}>
-            {model.company}
-          </p>
-        </div>
+        />
       </div>
+
+      {/* Model name */}
+      <h3
+        className="font-bold text-white text-center leading-tight w-full"
+        style={{
+          fontSize: "clamp(15px, 4vw, 18px)",
+          whiteSpace: "nowrap",
+          overflow: "hidden",
+          textOverflow: "ellipsis",
+          maxWidth: "100%",
+        }}
+      >
+        {model.name}
+      </h3>
+
+      {/* Provider / subtitle */}
       <p
-        className="text-xs sm:text-sm flex-1 leading-relaxed mb-4"
+        className="text-xs text-center mt-0.5 mb-2"
+        style={{ color: "#A7ADB7" }}
+      >
+        {model.company}
+      </p>
+
+      {/* Description */}
+      <p
+        className="text-xs sm:text-sm flex-1 leading-relaxed mb-4 text-center w-full"
         style={{ color: "#A7ADB7" }}
       >
         {model.desc}
       </p>
+
+      {/* Chat Now button */}
       <a
         data-ocid={`ai.primary_button.${index + 1}`}
         href={model.url}
