@@ -358,7 +358,7 @@ function Nav({
 }) {
   return (
     <header
-      className="fixed top-0 left-0 right-0 z-40 h-16 flex items-center justify-center px-4 md:px-6"
+      className="fixed top-0 left-0 right-0 z-40 flex items-center justify-center"
       style={{
         background: "rgba(0,0,0,0.6)",
         backdropFilter: "blur(30px)",
@@ -366,6 +366,10 @@ function Nav({
         borderBottom: "1px solid rgba(255,255,255,0.12)",
         boxShadow:
           "0 4px 24px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.05)",
+        height: "calc(64px + env(safe-area-inset-top, 0px))",
+        paddingTop: "env(safe-area-inset-top, 0px)",
+        paddingLeft: "max(16px, calc(16px + env(safe-area-inset-left, 0px)))",
+        paddingRight: "max(16px, calc(16px + env(safe-area-inset-right, 0px)))",
       }}
     >
       <button
@@ -933,7 +937,7 @@ function BottomSheetMenu({
               border: "1px solid rgba(255,255,255,0.12)",
               borderBottom: "none",
               boxShadow:
-                "0 -8px 60px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.12), 0 0 40px rgba(24,214,214,0.06)",
+                "0 -8px 60px rgba(0,0,0,0.5), inset 0 1.5px 0 rgba(255,255,255,0.22), 0 -1px 0 rgba(255,255,255,0.08), 0 -12px 40px rgba(255,255,255,0.04), 0 0 40px rgba(24,214,214,0.08)",
               display: "flex",
               flexDirection: "column",
               willChange: "transform",
@@ -987,90 +991,257 @@ function BottomSheetMenu({
               >
                 Menu
               </span>
-              <button
+              <motion.button
                 type="button"
                 data-ocid="nav.close_button"
                 onClick={onClose}
+                whileTap={{ scale: 0.92 }}
+                whileHover={{ scale: 1.1 }}
+                transition={{ type: "spring", stiffness: 380, damping: 24 }}
+                aria-label="Close menu"
                 style={{
-                  width: 44,
-                  height: 44,
+                  width: 46,
+                  height: 46,
+                  borderRadius: "50%",
+                  backdropFilter: "blur(30px)",
+                  WebkitBackdropFilter: "blur(30px)",
+                  background: "rgba(255,255,255,0.08)",
+                  border: "1px solid rgba(255,255,255,0.25)",
+                  boxShadow:
+                    "0 0 24px rgba(255,255,255,0.12), 0 0 48px rgba(24,214,214,0.08), inset 0 1px 0 rgba(255,255,255,0.2)",
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "center",
-                  borderRadius: 10,
-                  border: "1px solid rgba(255,255,255,0.15)",
                   cursor: "pointer",
-                  background: "rgba(255,255,255,0.07)",
-                  backdropFilter: "blur(16px)",
-                  WebkitBackdropFilter: "blur(16px)",
-                  boxShadow:
-                    "0 0 12px rgba(255,255,255,0.08), inset 0 1px 0 rgba(255,255,255,0.1)",
-                  transition:
-                    "background 200ms ease, box-shadow 200ms ease, transform 200ms ease",
+                  padding: 0,
                   flexShrink: 0,
                   position: "absolute",
-                  right: 20,
+                  right: 18,
                 }}
-                onMouseEnter={(e) => {
-                  const btn = e.currentTarget as HTMLButtonElement;
-                  btn.style.background = "rgba(255,255,255,0.13)";
-                  btn.style.boxShadow =
-                    "0 0 20px rgba(255,255,255,0.18), inset 0 1px 0 rgba(255,255,255,0.15)";
-                  btn.style.transform = "scale(1.05)";
-                }}
-                onMouseLeave={(e) => {
-                  const btn = e.currentTarget as HTMLButtonElement;
-                  btn.style.background = "rgba(255,255,255,0.07)";
-                  btn.style.boxShadow =
-                    "0 0 12px rgba(255,255,255,0.08), inset 0 1px 0 rgba(255,255,255,0.1)";
-                  btn.style.transform = "scale(1)";
-                }}
-                aria-label="Close menu"
               >
-                <div
+                {/* Neural network nexus icon scaled to 28px */}
+                <svg
+                  width="28"
+                  height="28"
+                  viewBox="0 0 38 38"
+                  fill="none"
+                  xmlns="http://www.w3.org/2000/svg"
+                  aria-hidden="true"
+                >
+                  <circle cx="19" cy="19" r="3" fill="white" opacity="0.9" />
+                  <circle cx="19" cy="8" r="2" fill="white" opacity="0.7" />
+                  <circle cx="19" cy="30" r="2" fill="white" opacity="0.7" />
+                  <circle cx="8" cy="19" r="2" fill="white" opacity="0.7" />
+                  <circle cx="30" cy="19" r="2" fill="white" opacity="0.7" />
+                  <circle cx="11" cy="11" r="1.5" fill="white" opacity="0.6" />
+                  <circle cx="27" cy="11" r="1.5" fill="white" opacity="0.6" />
+                  <circle cx="11" cy="27" r="1.5" fill="white" opacity="0.6" />
+                  <circle cx="27" cy="27" r="1.5" fill="white" opacity="0.6" />
+                  <circle
+                    cx="19"
+                    cy="3"
+                    r="1"
+                    fill="rgba(24,214,214,0.8)"
+                    opacity="0.8"
+                  />
+                  <circle
+                    cx="19"
+                    cy="35"
+                    r="1"
+                    fill="rgba(24,214,214,0.8)"
+                    opacity="0.8"
+                  />
+                  <circle
+                    cx="3"
+                    cy="19"
+                    r="1"
+                    fill="rgba(24,214,214,0.8)"
+                    opacity="0.8"
+                  />
+                  <circle
+                    cx="35"
+                    cy="19"
+                    r="1"
+                    fill="rgba(24,214,214,0.8)"
+                    opacity="0.8"
+                  />
+                  <line
+                    x1="19"
+                    y1="19"
+                    x2="19"
+                    y2="8"
+                    stroke="white"
+                    strokeWidth="1"
+                    opacity="0.5"
+                  />
+                  <line
+                    x1="19"
+                    y1="19"
+                    x2="19"
+                    y2="30"
+                    stroke="white"
+                    strokeWidth="1"
+                    opacity="0.5"
+                  />
+                  <line
+                    x1="19"
+                    y1="19"
+                    x2="8"
+                    y2="19"
+                    stroke="white"
+                    strokeWidth="1"
+                    opacity="0.5"
+                  />
+                  <line
+                    x1="19"
+                    y1="19"
+                    x2="30"
+                    y2="19"
+                    stroke="white"
+                    strokeWidth="1"
+                    opacity="0.5"
+                  />
+                  <line
+                    x1="19"
+                    y1="19"
+                    x2="11"
+                    y2="11"
+                    stroke="white"
+                    strokeWidth="0.8"
+                    opacity="0.4"
+                  />
+                  <line
+                    x1="19"
+                    y1="19"
+                    x2="27"
+                    y2="11"
+                    stroke="white"
+                    strokeWidth="0.8"
+                    opacity="0.4"
+                  />
+                  <line
+                    x1="19"
+                    y1="19"
+                    x2="11"
+                    y2="27"
+                    stroke="white"
+                    strokeWidth="0.8"
+                    opacity="0.4"
+                  />
+                  <line
+                    x1="19"
+                    y1="19"
+                    x2="27"
+                    y2="27"
+                    stroke="white"
+                    strokeWidth="0.8"
+                    opacity="0.4"
+                  />
+                  <line
+                    x1="19"
+                    y1="8"
+                    x2="19"
+                    y2="3"
+                    stroke="rgba(24,214,214,0.6)"
+                    strokeWidth="0.8"
+                    opacity="0.6"
+                  />
+                  <line
+                    x1="19"
+                    y1="30"
+                    x2="19"
+                    y2="35"
+                    stroke="rgba(24,214,214,0.6)"
+                    strokeWidth="0.8"
+                    opacity="0.6"
+                  />
+                  <line
+                    x1="8"
+                    y1="19"
+                    x2="3"
+                    y2="19"
+                    stroke="rgba(24,214,214,0.6)"
+                    strokeWidth="0.8"
+                    opacity="0.6"
+                  />
+                  <line
+                    x1="30"
+                    y1="19"
+                    x2="35"
+                    y2="19"
+                    stroke="rgba(24,214,214,0.6)"
+                    strokeWidth="0.8"
+                    opacity="0.6"
+                  />
+                  <line
+                    x1="11"
+                    y1="11"
+                    x2="27"
+                    y2="11"
+                    stroke="white"
+                    strokeWidth="0.6"
+                    opacity="0.25"
+                  />
+                  <line
+                    x1="11"
+                    y1="27"
+                    x2="27"
+                    y2="27"
+                    stroke="white"
+                    strokeWidth="0.6"
+                    opacity="0.25"
+                  />
+                  <line
+                    x1="11"
+                    y1="11"
+                    x2="11"
+                    y2="27"
+                    stroke="white"
+                    strokeWidth="0.6"
+                    opacity="0.25"
+                  />
+                  <line
+                    x1="27"
+                    y1="11"
+                    x2="27"
+                    y2="27"
+                    stroke="white"
+                    strokeWidth="0.6"
+                    opacity="0.25"
+                  />
+                  <circle
+                    cx="19"
+                    cy="19"
+                    r="14"
+                    stroke="rgba(24,214,214,0.2)"
+                    strokeWidth="0.5"
+                    fill="none"
+                    strokeDasharray="3 5"
+                  />
+                </svg>
+                {/* Faint X overlay */}
+                <svg
+                  width="14"
+                  height="14"
+                  viewBox="0 0 14 14"
+                  fill="none"
+                  aria-hidden="true"
                   style={{
-                    position: "relative",
-                    width: 32,
-                    height: 32,
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
+                    position: "absolute",
+                    inset: 0,
+                    margin: "auto",
+                    opacity: 0.4,
+                    pointerEvents: "none",
                   }}
                 >
-                  <img
-                    src="/assets/uploads/nano-banana-2_futuristic_minimalist_logo_for_neural_linkz_an_ai_directory_app_deep_space_vanta-0-019d1c67-800b-710d-a1c5-eb045ada3bc9-1.jpg"
-                    alt="Neural Linkz"
-                    style={{
-                      width: 32,
-                      height: 32,
-                      objectFit: "contain",
-                      borderRadius: 4,
-                      display: "block",
-                    }}
+                  <path
+                    d="M2 2L12 12M12 2L2 12"
+                    stroke="white"
+                    strokeWidth="2"
+                    strokeLinecap="round"
                   />
-                  <svg
-                    width="16"
-                    height="16"
-                    viewBox="0 0 14 14"
-                    fill="none"
-                    aria-hidden="true"
-                    style={{
-                      position: "absolute",
-                      inset: 0,
-                      margin: "auto",
-                      opacity: 0.75,
-                      pointerEvents: "none",
-                    }}
-                  >
-                    <path
-                      d="M1 1L13 13M13 1L1 13"
-                      stroke="white"
-                      strokeWidth="2.5"
-                      strokeLinecap="round"
-                    />
-                  </svg>
-                </div>
-              </button>
+                </svg>
+              </motion.button>
             </div>
 
             <nav
@@ -1387,8 +1558,11 @@ function FeaturedCard() {
 function Hero() {
   return (
     <section
-      className="relative pt-32 pb-16 px-4 text-center overflow-hidden"
-      style={{ background: "#000" }}
+      className="relative pb-16 px-4 text-center overflow-hidden"
+      style={{
+        background: "#000",
+        paddingTop: "calc(128px + env(safe-area-inset-top, 0px))",
+      }}
     >
       <div
         className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] rounded-full pointer-events-none"
@@ -1694,8 +1868,11 @@ function OpenSourcePage() {
     >
       {/* Hero */}
       <section
-        className="relative pt-28 pb-10 px-4 text-center overflow-hidden"
-        style={{ background: "#000" }}
+        className="relative pb-10 px-4 text-center overflow-hidden"
+        style={{
+          background: "#000",
+          paddingTop: "calc(112px + env(safe-area-inset-top, 0px))",
+        }}
       >
         <div
           className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[400px] rounded-full pointer-events-none"
@@ -3037,8 +3214,11 @@ function BenchmarksPage() {
 
   return (
     <main
-      className="min-h-screen pt-24 pb-16 px-4 md:px-6"
-      style={{ background: "#000" }}
+      className="min-h-screen pb-16 px-4 md:px-6"
+      style={{
+        background: "#000",
+        paddingTop: "calc(96px + env(safe-area-inset-top, 0px))",
+      }}
     >
       {dataLoading && <GlassSpinner />}
       <div className="max-w-6xl mx-auto">
@@ -3346,8 +3526,11 @@ function AboutPage() {
 
   return (
     <main
-      className="min-h-screen flex items-start justify-center pt-24 pb-24 px-4"
-      style={{ background: "transparent" }}
+      className="min-h-screen flex items-start justify-center pb-24 px-4"
+      style={{
+        background: "transparent",
+        paddingTop: "calc(96px + env(safe-area-inset-top, 0px))",
+      }}
     >
       <motion.div
         initial={{ opacity: 0, y: 24 }}
