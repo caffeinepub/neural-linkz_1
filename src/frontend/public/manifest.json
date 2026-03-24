@@ -9,7 +9,11 @@
   "theme_color": "#000000",
   "orientation": "portrait-primary",
   "lang": "en",
-  "categories": ["productivity", "utilities", "technology"],
+  "categories": [
+    "productivity",
+    "utilities",
+    "technology"
+  ],
   "icons": [
     {
       "src": "/assets/uploads/neurallinkzlogo-019d1dad-d950-73da-9406-095542613345-1.jpg",
@@ -31,5 +35,9 @@
     }
   ],
   "screenshots": [],
-  "prefer_related_applications": false
+  "prefer_related_applications": false,
+  "display_override": [
+    "window-controls-overlay",
+    "standalone"
+  ]
 }
