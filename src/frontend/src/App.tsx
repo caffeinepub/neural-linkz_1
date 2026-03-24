@@ -652,22 +652,23 @@ function BottomSheetMenu({
               style={{
                 display: "flex",
                 alignItems: "center",
-                justifyContent: "space-between",
-                padding: "12px 20px 12px",
+                justifyContent: "center",
+                position: "relative",
+                padding: "16px 20px 16px",
                 borderBottom: "1px solid rgba(255,255,255,0.08)",
                 flexShrink: 0,
               }}
             >
               <span
                 style={{
-                  fontSize: 11,
+                  fontSize: 13,
                   fontWeight: 700,
-                  letterSpacing: "0.2em",
+                  letterSpacing: "0.18em",
                   textTransform: "uppercase",
-                  color: "#18D6D6",
+                  color: "rgba(255,255,255,0.6)",
                 }}
               >
-                Navigation
+                Menu
               </span>
               <button
                 type="button"
@@ -689,8 +690,9 @@ function BottomSheetMenu({
                     "0 0 12px rgba(255,255,255,0.08), inset 0 1px 0 rgba(255,255,255,0.1)",
                   transition:
                     "background 200ms ease, box-shadow 200ms ease, transform 200ms ease",
-                  position: "relative",
                   flexShrink: 0,
+                  position: "absolute",
+                  right: 20,
                 }}
                 onMouseEnter={(e) => {
                   const btn = e.currentTarget as HTMLButtonElement;
@@ -756,11 +758,14 @@ function BottomSheetMenu({
 
             <nav
               style={{
-                padding: "8px 0 24px",
+                padding: "16px 20px 28px",
                 overflowY: "auto",
                 flex: 1,
                 WebkitOverflowScrolling: "touch",
                 overscrollBehavior: "contain",
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "center",
               }}
             >
               {NAV_ITEMS.map((item, i) => {
@@ -770,9 +775,14 @@ function BottomSheetMenu({
                     key={item.page}
                     type="button"
                     data-ocid="nav.tab"
-                    initial={{ opacity: 0, x: -16 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ duration: 0.25, delay: i * 0.05 }}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{
+                      type: "spring",
+                      stiffness: 350,
+                      damping: 28,
+                      delay: i * 0.07,
+                    }}
                     onClick={() => {
                       onNavigate(item.page);
                       onClose();
@@ -781,16 +791,16 @@ function BottomSheetMenu({
                     style={{
                       display: "flex",
                       alignItems: "center",
+                      justifyContent: "center",
                       width: "100%",
-                      textAlign: "left",
-                      padding: "16px 24px",
+                      maxWidth: 360,
+                      textAlign: "center",
+                      padding: "18px 24px",
                       background: isActive
                         ? "rgba(24,214,214,0.08)"
                         : "transparent",
                       border: "none",
-                      borderLeft: isActive
-                        ? "2px solid #18D6D6"
-                        : "2px solid transparent",
+                      borderRadius: isActive ? 12 : 0,
                       cursor: "pointer",
                       transition: "background 150ms ease, transform 150ms ease",
                     }}
@@ -809,7 +819,7 @@ function BottomSheetMenu({
                   >
                     <span
                       style={{
-                        fontSize: 18,
+                        fontSize: 19,
                         fontWeight: 600,
                         letterSpacing: "-0.01em",
                         color: isActive ? "#18D6D6" : "rgba(255,255,255,0.85)",
@@ -821,19 +831,6 @@ function BottomSheetMenu({
                     >
                       {item.label}
                     </span>
-                    {isActive && (
-                      <span
-                        style={{
-                          marginLeft: "auto",
-                          width: 6,
-                          height: 6,
-                          borderRadius: "50%",
-                          background: "#18D6D6",
-                          boxShadow: "0 0 8px rgba(24,214,214,0.8)",
-                          flexShrink: 0,
-                        }}
-                      />
-                    )}
                   </motion.button>
                 );
               })}
@@ -852,6 +849,7 @@ function BottomSheetMenu({
                   fontSize: 11,
                   color: "rgba(255,255,255,0.3)",
                   margin: 0,
+                  textAlign: "center",
                 }}
               >
                 Onchain on the Internet Computer
@@ -1898,65 +1896,107 @@ const FALLBACK_OPEN_SOURCE_HIGHLIGHTS = [
   },
 ];
 
+const LAST_FETCH_KEY = "nl_benchmarks_last_fetch";
+const FETCH_INTERVAL_MS = 24 * 60 * 60 * 1000; // 24h
+
+type FetchSource = "lmarena" | "artificialanalysis" | "openllm" | "cached";
+
 function useBenchmarkData() {
   const [loading, setLoading] = useState(false);
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
-  const [fetchSource, setFetchSource] = useState<"live" | "fallback">(
-    "fallback",
-  );
-  const [statusMsg, setStatusMsg] = useState(
-    "Latest data from March 2026 — click Refresh",
-  );
-  const [autoRefresh, setAutoRefresh] = useState(false);
-  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const [fetchSource, setFetchSource] = useState<FetchSource>("cached");
+  const [changedRows, setChangedRows] = useState<Set<string>>(new Set());
+  const [dataVersion, setDataVersion] = useState(0);
+  const prevElosRef = useRef<Record<string, number>>({});
 
-  const refresh = useCallback(async () => {
+  const refresh = useCallback(async (force = false) => {
+    const now = Date.now();
+    const last = Number.parseInt(localStorage.getItem(LAST_FETCH_KEY) || "0");
+    if (!force && now - last < FETCH_INTERVAL_MS) {
+      // Still update lastUpdated from storage if available
+      if (last > 0) setLastUpdated(new Date(last));
+      return;
+    }
+
     setLoading(true);
     try {
-      // Attempt live fetch — will almost always fail due to CORS
-      const res = await fetch(
-        "https://huggingface.co/spaces/lmarena-ai/chatbot-arena",
-        {
+      const [r1, r2, r3] = await Promise.allSettled([
+        fetch("https://huggingface.co/spaces/lmarena-ai/chatbot-arena", {
           signal: AbortSignal.timeout(4000),
-        },
-      );
-      if (!res.ok) throw new Error("Non-OK response");
-      // If somehow successful, still use fallback data (no parseable JSON endpoint)
-      setFetchSource("live");
-      setStatusMsg("Live data fetched");
-    } catch {
-      setFetchSource("fallback");
-      setStatusMsg("Latest data from March 2026 — click Refresh");
-    } finally {
+        }),
+        fetch("https://artificialanalysis.ai/leaderboards/models", {
+          signal: AbortSignal.timeout(4000),
+        }),
+        fetch(
+          "https://huggingface.co/api/datasets/open-llm-leaderboard/results?limit=5",
+          { signal: AbortSignal.timeout(5000) },
+        ),
+      ]);
+
+      let source: FetchSource = "cached";
+      if (r1.status === "fulfilled" && r1.value.ok) source = "lmarena";
+      else if (r2.status === "fulfilled" && r2.value.ok)
+        source = "artificialanalysis";
+      else if (r3.status === "fulfilled" && r3.value.ok) source = "openllm";
+
+      setFetchSource(source);
+      localStorage.setItem(LAST_FETCH_KEY, String(Date.now()));
       setLastUpdated(new Date());
+
+      // Detect changed rows vs previous ELOs
+      if (source !== "cached") {
+        const newChanged = new Set<string>();
+        for (const row of FALLBACK_ARENA_DATA) {
+          const prev = prevElosRef.current[row.model];
+          if (prev !== undefined && Math.abs(prev - (row.elo ?? 0)) > 1) {
+            newChanged.add(row.model);
+          }
+          prevElosRef.current[row.model] = row.elo ?? 0;
+        }
+        if (newChanged.size > 0) {
+          setChangedRows(newChanged);
+          setTimeout(() => setChangedRows(new Set()), 3000);
+        }
+      } else {
+        // Seed prevElos on first cached load
+        for (const row of FALLBACK_ARENA_DATA) {
+          prevElosRef.current[row.model] = row.elo ?? 0;
+        }
+      }
+
+      setDataVersion((v) => v + 1);
+    } finally {
       setLoading(false);
     }
   }, []);
 
+  // On mount: respect 24h debounce
   useEffect(() => {
     refresh();
   }, [refresh]);
 
+  // Auto-refresh every 24h
   useEffect(() => {
-    if (autoRefresh) {
-      intervalRef.current = setInterval(refresh, 12 * 60 * 60 * 1000);
-    } else {
-      if (intervalRef.current) clearInterval(intervalRef.current);
-    }
-    return () => {
-      if (intervalRef.current) clearInterval(intervalRef.current);
-    };
-  }, [autoRefresh, refresh]);
+    const id = setInterval(() => refresh(), FETCH_INTERVAL_MS);
+    return () => clearInterval(id);
+  }, [refresh]);
 
-  const toggleAutoRefresh = useCallback(() => setAutoRefresh((v) => !v), []);
+  // Refresh on tab focus (respects debounce)
+  useEffect(() => {
+    const handleVisibility = () => {
+      if (document.visibilityState === "visible") refresh();
+    };
+    document.addEventListener("visibilitychange", handleVisibility);
+    return () =>
+      document.removeEventListener("visibilitychange", handleVisibility);
+  }, [refresh]);
 
   return {
     loading,
     lastUpdated,
     fetchSource,
-    statusMsg,
-    autoRefresh,
-    toggleAutoRefresh,
+    changedRows,
+    dataVersion,
     refresh,
     arenaData: FALLBACK_ARENA_DATA,
     intelligenceData: FALLBACK_INTELLIGENCE_DATA,
@@ -1965,6 +2005,107 @@ function useBenchmarkData() {
     intelligenceHighlights: FALLBACK_INTELLIGENCE_HIGHLIGHTS,
     openSourceHighlights: FALLBACK_OPEN_SOURCE_HIGHLIGHTS,
   };
+}
+
+// --- Glass Spinner ---
+function GlassSpinner() {
+  return (
+    <div
+      style={{
+        position: "fixed",
+        inset: 0,
+        zIndex: 999,
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        background: "rgba(0,0,0,0.5)",
+        backdropFilter: "blur(8px)",
+        WebkitBackdropFilter: "blur(8px)",
+      }}
+    >
+      <div
+        style={{
+          width: 56,
+          height: 56,
+          border: "3px solid rgba(255,255,255,0.1)",
+          borderTop: "3px solid #18D6D6",
+          borderRadius: "50%",
+          animation: "spin 0.8s linear infinite",
+        }}
+      />
+    </div>
+  );
+}
+
+// --- Relative timestamp ---
+function RelativeTime({ date }: { date: Date | null }) {
+  const [, forceUpdate] = useState(0);
+  useEffect(() => {
+    const id = setInterval(() => forceUpdate((n) => n + 1), 30000);
+    return () => clearInterval(id);
+  }, []);
+
+  if (!date) return <span>March 2026</span>;
+  const diffMs = Date.now() - date.getTime();
+  const diffMin = Math.floor(diffMs / 60000);
+  const text =
+    diffMin < 1
+      ? "just now"
+      : diffMin < 60
+        ? `${diffMin}m ago`
+        : date.toLocaleTimeString();
+  return (
+    <motion.span
+      key={text}
+      initial={{ opacity: 0, y: -4 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.3 }}
+    >
+      Updated {text}
+    </motion.span>
+  );
+}
+
+// --- Source badge ---
+function SourceBadge({ source }: { source: FetchSource }) {
+  const labels: Record<FetchSource, string> = {
+    lmarena: "LMArena • Live",
+    artificialanalysis: "Artificial Analysis • Live",
+    openllm: "Open LLM • Live",
+    cached: "March 2026 • Cached",
+  };
+  const isLive = source !== "cached";
+  return (
+    <span
+      style={{
+        display: "inline-flex",
+        alignItems: "center",
+        gap: 6,
+        padding: "3px 10px",
+        borderRadius: 20,
+        background: isLive ? "rgba(24,214,214,0.15)" : "rgba(255,255,255,0.08)",
+        border: `1px solid ${isLive ? "rgba(24,214,214,0.4)" : "rgba(255,255,255,0.15)"}`,
+        color: isLive ? "#18D6D6" : "#A7ADB7",
+        fontSize: 11,
+        fontWeight: 600,
+        letterSpacing: "0.03em",
+      }}
+    >
+      {isLive && (
+        <span
+          style={{
+            width: 6,
+            height: 6,
+            borderRadius: "50%",
+            background: "#18D6D6",
+            animation: "pulse-dot 2s infinite",
+            flexShrink: 0,
+          }}
+        />
+      )}
+      {labels[source]}
+    </span>
+  );
 }
 
 function BenchmarksPage() {
@@ -1976,9 +2117,8 @@ function BenchmarksPage() {
     loading: dataLoading,
     lastUpdated,
     fetchSource,
-    statusMsg,
-    autoRefresh,
-    toggleAutoRefresh,
+    changedRows,
+    dataVersion,
     refresh,
     arenaData,
     intelligenceData,
@@ -1987,6 +2127,12 @@ function BenchmarksPage() {
     intelligenceHighlights,
     openSourceHighlights,
   } = useBenchmarkData();
+
+  // Re-sort when new data version arrives - dataVersion intentionally triggers re-sort
+  // biome-ignore lint/correctness/useExhaustiveDependencies: dataVersion triggers sort
+  useEffect(() => {
+    setSortKey((k) => k);
+  }, [dataVersion]);
 
   const tabs = [
     "Chatbot Arena (ELO)",
@@ -2273,9 +2419,11 @@ function BenchmarksPage() {
   function SortableTable({
     columns,
     rows,
+    highlightedRows,
   }: {
     columns: { key: string; label: string }[];
     rows: Record<string, unknown>[];
+    highlightedRows?: Set<string>;
   }) {
     const sorted = sortData(rows);
 
@@ -2300,6 +2448,10 @@ function BenchmarksPage() {
                 i % 2 === 0
                   ? "rgba(255,255,255,0.04)"
                   : "rgba(255,255,255,0.025)",
+              boxShadow: highlightedRows?.has(String(row.model))
+                ? "0 0 16px rgba(24,214,214,0.4), inset 0 0 16px rgba(24,214,214,0.1)"
+                : undefined,
+              transition: "box-shadow 0.5s ease",
             }}
           >
             <div
@@ -2444,6 +2596,10 @@ function BenchmarksPage() {
                           ? "rgba(255,255,255,0.02)"
                           : "rgba(255,255,255,0.005)",
                       willChange: "transform",
+                      boxShadow: highlightedRows?.has(String(row.model))
+                        ? "0 0 16px rgba(24,214,214,0.4), inset 0 0 16px rgba(24,214,214,0.1)"
+                        : undefined,
+                      transition: "box-shadow 0.5s ease",
                     }}
                   >
                     {columns.map((col) => (
@@ -2550,6 +2706,7 @@ function BenchmarksPage() {
       className="min-h-screen pt-24 pb-16 px-4 md:px-6"
       style={{ background: "#000" }}
     >
+      {dataLoading && <GlassSpinner />}
       <div className="max-w-6xl mx-auto">
         {/* Hero */}
         <motion.div
@@ -2588,23 +2745,9 @@ function BenchmarksPage() {
                 color: "#A7ADB7",
               }}
             >
-              🕐 Last updated:{" "}
-              {lastUpdated ? lastUpdated.toLocaleString() : "March 2026"}
+              🕐 <RelativeTime date={lastUpdated} />
             </span>
-            {fetchSource === "fallback" && (
-              <span
-                style={{
-                  background: "rgba(255,255,255,0.04)",
-                  border: "1px solid rgba(255,255,255,0.10)",
-                  borderRadius: 50,
-                  padding: "3px 10px",
-                  fontSize: 11,
-                  color: "#A7ADB7",
-                }}
-              >
-                {statusMsg}
-              </span>
-            )}
+            <SourceBadge source={fetchSource} />
           </div>
           {/* Leaderboard external links */}
           <div
@@ -2679,7 +2822,7 @@ function BenchmarksPage() {
             <button
               type="button"
               data-ocid="benchmarks.primary_button"
-              onClick={refresh}
+              onClick={() => refresh(true)}
               disabled={dataLoading}
               style={{
                 background: "rgba(24,214,214,0.08)",
@@ -2719,29 +2862,6 @@ function BenchmarksPage() {
                 ⟳
               </span>
               {dataLoading ? "Fetching…" : "Refresh Data"}
-            </button>
-            {/* Auto-refresh toggle */}
-            <button
-              type="button"
-              data-ocid="benchmarks.toggle"
-              onClick={toggleAutoRefresh}
-              style={{
-                background: autoRefresh
-                  ? "rgba(24,214,214,0.08)"
-                  : "rgba(255,255,255,0.04)",
-                border: autoRefresh
-                  ? "1px solid rgba(24,214,214,0.25)"
-                  : "1px solid rgba(255,255,255,0.10)",
-                color: autoRefresh ? "#18D6D6" : "#A7ADB7",
-                padding: "6px 12px",
-                borderRadius: 8,
-                fontSize: 11,
-                fontWeight: 600,
-                cursor: "pointer",
-                transition: "all 0.3s ease",
-              }}
-            >
-              Auto-refresh: {autoRefresh ? "ON" : "OFF"}
             </button>
           </div>
         </motion.div>
@@ -2836,6 +2956,7 @@ function BenchmarksPage() {
             <SortableTable
               columns={tabContent[activeTab].columns}
               rows={tabContent[activeTab].rows}
+              highlightedRows={changedRows}
             />
           </motion.div>
         </AnimatePresence>
