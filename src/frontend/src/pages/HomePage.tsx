@@ -3,15 +3,24 @@ import React, { useState } from "react";
 import { AI_MODELS, GROK_FALLBACK, GROK_LOGO } from "../data";
 import type { AIModel } from "../types";
 
-// Brightness/contrast filters for new icons that need dark-mode visibility boost.
-// Only these 6 model IDs are affected; all existing cards remain unchanged.
+// Brightness/contrast filters for icons that need dark-mode visibility boost.
 const NEW_ICON_FILTERS: Record<string, string> = {
   udio: "brightness(1.1) saturate(1.2)",
   suno: "brightness(1.05) saturate(1.1)",
   llama: "brightness(1.1) contrast(1.05)",
   mistral: "brightness(1.1) saturate(1.15)",
-  glm: "brightness(1.4) contrast(1.1) saturate(0.9)",
+  glm: "brightness(1.3) contrast(1.1) saturate(1.1)",
   "minimax-music": "brightness(1.1) saturate(1.1)",
+  // new additions
+  midjourney: "brightness(1.0)",
+  flux: "brightness(1.1)",
+  "adobe-firefly": "brightness(1.0)",
+  runway: "brightness(1.1)",
+  elevenlabs: "brightness(1.1)",
+  "github-copilot": "brightness(1.1)",
+  vercel: "brightness(1.1)",
+  manus: "brightness(1.1)",
+  "claude-code": "brightness(1.0) saturate(1.1)",
 };
 
 function AILogoImg({
@@ -47,6 +56,14 @@ function AILogoImg({
         glm: "https://chatglm.cn/favicon.ico",
         cursor: "https://lobehub.com/icons/cursor.svg",
         "claude-code": "https://lobehub.com/icons/claude.svg",
+        midjourney: "https://lobehub.com/icons/midjourney.svg",
+        flux: "https://blackforestlabs.ai/favicon.ico",
+        "adobe-firefly": "https://lobehub.com/icons/adobe-firefly.svg",
+        runway: "https://runwayml.com/favicon.ico",
+        elevenlabs: "https://elevenlabs.io/favicon.ico",
+        "github-copilot": "https://lobehub.com/icons/github-copilot.svg",
+        vercel: "https://vercel.com/favicon.ico",
+        manus: "https://manus.im/favicon.ico",
       };
       const key = fallbackText.toLowerCase();
       if (lobeMap[key]) {
@@ -86,7 +103,6 @@ const AICard = React.memo(function AICard({
 }: { model: AIModel; index: number }) {
   const [logoHovered, setLogoHovered] = useState(false);
 
-  // Only apply filter to the 6 newly added icons
   const iconFilter = NEW_ICON_FILTERS[model.id] ?? undefined;
 
   return (
