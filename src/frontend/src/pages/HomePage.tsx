@@ -21,6 +21,14 @@ const NEW_ICON_FILTERS: Record<string, string> = {
   vercel: "brightness(1.1)",
   manus: "brightness(1.1)",
   "claude-code": "brightness(1.0) saturate(1.1)",
+  kimi: "brightness(1.1) saturate(1.1)",
+  codex: "brightness(1.1)",
+  huggingface: "brightness(1.0) saturate(1.1)",
+  kling: "brightness(1.1)",
+  "stable-diffusion": "brightness(1.1) saturate(1.1)",
+  ideogram: "brightness(1.1)",
+  "leonardo-ai": "brightness(1.0)",
+  notebooklm: "brightness(1.1)",
 };
 
 function AILogoImg({
@@ -64,6 +72,14 @@ function AILogoImg({
         "github-copilot": "https://lobehub.com/icons/github-copilot.svg",
         vercel: "https://vercel.com/favicon.ico",
         manus: "https://manus.im/favicon.ico",
+        kimi: "https://kimi.moonshot.cn/favicon.ico",
+        codex: "https://openai.com/favicon.ico",
+        huggingface: "https://huggingface.co/favicon.ico",
+        kling: "https://kling.ai/favicon.ico",
+        "stable-diffusion": "https://stability.ai/favicon.ico",
+        ideogram: "https://ideogram.ai/favicon.ico",
+        "leonardo-ai": "https://leonardo.ai/favicon.ico",
+        notebooklm: "https://notebooklm.google/favicon.ico",
       };
       const key = fallbackText.toLowerCase();
       if (lobeMap[key]) {

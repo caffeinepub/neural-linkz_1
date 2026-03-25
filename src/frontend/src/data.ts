@@ -241,6 +241,92 @@ export const AI_MODELS: AIModel[] = [
     initials: "Mn",
     logo: "/assets/uploads/manus-text-019d246a-0fde-759e-a4fc-c5ce823ebf6e-5.webp",
   },
+  // Multimodal / General
+  {
+    id: "kimi",
+    name: "Kimi",
+    company: "Moonshot AI",
+    desc: "Powerful multimodal AI from Moonshot AI with strong reasoning.",
+    url: "https://kimi.moonshot.cn",
+    color: "#1A73E8",
+    initials: "Ki",
+    logo: "/assets/uploads/kimi-019d24e4-6d53-772e-9293-2f7a59afcd7d-1.webp",
+  },
+  // Coding
+  {
+    id: "codex",
+    name: "Codex",
+    company: "OpenAI",
+    desc: "OpenAI's specialized coding model for software development.",
+    url: "https://openai.com",
+    color: "#10A37F",
+    initials: "Cx",
+    logo: "/assets/uploads/codex-019d24e4-6d7c-742b-88f5-763b811ebc3b-4.webp",
+  },
+  // Platform
+  {
+    id: "huggingface",
+    name: "Hugging Face",
+    company: "Hugging Face",
+    desc: "The leading platform for open-source AI models and tools.",
+    url: "https://huggingface.co",
+    color: "#FFD21E",
+    initials: "HF",
+    logo: "/assets/uploads/huggingface-019d24e4-6e0e-72e7-ac6d-9fcb47218b42-7.webp",
+  },
+  // Video Generation
+  {
+    id: "kling",
+    name: "Kling",
+    company: "Kuaishou",
+    desc: "High-quality AI video generation from Kuaishou.",
+    url: "https://kling.ai",
+    color: "#FF4081",
+    initials: "Kl",
+    logo: "/assets/uploads/kling-019d24e4-6dc4-7508-a87e-fbc965214f6d-6.webp",
+  },
+  // Image Generation
+  {
+    id: "stable-diffusion",
+    name: "Stable Diffusion",
+    company: "Stability AI",
+    desc: "Popular open-source AI image generation family.",
+    url: "https://stability.ai",
+    color: "#9C27B0",
+    initials: "SD",
+    logo: "/assets/uploads/stablediffusion-019d24e4-6d54-722e-8f75-7bf7a76d864f-3.webp",
+  },
+  {
+    id: "ideogram",
+    name: "Ideogram",
+    company: "Ideogram AI",
+    desc: "Advanced AI image generation with excellent text rendering.",
+    url: "https://ideogram.ai",
+    color: "#1A73E8",
+    initials: "Id",
+    logo: "/assets/uploads/ideogram-019d24e4-6d49-72a4-813b-ff7234b14330-2.webp",
+  },
+  {
+    id: "leonardo-ai",
+    name: "Leonardo AI",
+    company: "Leonardo AI",
+    desc: "Creative AI image and video generation platform.",
+    url: "https://leonardo.ai",
+    color: "#FF6B35",
+    initials: "LA",
+    logo: "/assets/uploads/leonardoai.webp-019d24e4-6fb3-73b1-9190-23b867f8900a-8.png",
+  },
+  // Research
+  {
+    id: "notebooklm",
+    name: "NotebookLM",
+    company: "Google",
+    desc: "Google's AI-powered research and note-taking assistant.",
+    url: "https://notebooklm.google",
+    color: "#4285F4",
+    initials: "NL",
+    logo: "/assets/uploads/notebooklm-019d24e4-6da3-757f-b07e-f8e0b911870f-5.webp",
+  },
 ];
 
 export const GROK_LOGO =
