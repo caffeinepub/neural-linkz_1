@@ -140,6 +140,7 @@ body {
   .ai-logo,
   .btn-cyan,
   .btn-cyan-outline,
+  .btn-lime,
   [class*="card"],
   [class*="sheet"],
   [class*="tab"],
@@ -240,6 +241,16 @@ body {
     box-shadow: 0 0 20px rgba(24, 214, 214, 0.6);
     transform: translateZ(0) translateY(-1px);
   }
+  .btn-lime {
+    background: #ccff00;
+    color: #000;
+    font-weight: 700;
+    transition: box-shadow 200ms ease, transform 200ms ease;
+  }
+  .btn-lime:hover {
+    box-shadow: 0 0 20px rgba(204, 255, 0, 0.6);
+    transform: translateZ(0) translateY(-1px);
+  }
   .btn-cyan-outline {
     border: 1.5px solid #18d6d6;
     color: #18d6d6;
@@ -319,6 +330,11 @@ body {
 /* Override: keep .os-tabs-row scrollbar hidden */
 .os-tabs-row {
   scrollbar-width: none;
+}
+
+/* Hide scrollbar on featured swipe container */
+.featured-scroll-container::-webkit-scrollbar {
+  display: none;
 }
 
 @keyframes spin {

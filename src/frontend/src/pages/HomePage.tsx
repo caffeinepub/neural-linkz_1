@@ -229,7 +229,7 @@ const GrokFeaturedCard = React.memo(function GrokFeaturedCard() {
       initial={{ opacity: 0, y: 24 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ type: "spring", stiffness: 350, damping: 26 }}
-      className="rounded-2xl p-3.5 md:p-7 flex flex-col md:flex-row gap-3 md:gap-8 items-start md:items-center"
+      className="rounded-2xl p-5 md:p-7 flex flex-col md:flex-row gap-5 md:gap-8 items-start md:items-center h-full"
       style={{
         background: "rgba(255,255,255,0.05)",
         backdropFilter: "blur(40px)",
@@ -249,7 +249,7 @@ const GrokFeaturedCard = React.memo(function GrokFeaturedCard() {
           src={GROK_LOGO}
           alt="Grok logo"
           fallbackText="grok"
-          className="ai-logo w-14 h-14 md:w-24 md:h-24 object-contain rounded-2xl bg-black/30 p-2"
+          className="ai-logo w-20 h-20 md:w-24 md:h-24 object-contain rounded-2xl bg-black/30 p-2"
           style={{
             border: logoHovered
               ? "1px solid rgba(255,255,255,0.12)"
@@ -263,12 +263,12 @@ const GrokFeaturedCard = React.memo(function GrokFeaturedCard() {
       </div>
       <div className="flex-1">
         <div className="flex items-center gap-2 mb-1">
-          <h2 className="text-xl md:text-3xl font-bold text-white">Grok</h2>
+          <h2 className="text-2xl md:text-3xl font-bold text-white">Grok</h2>
           <span className="text-sm font-medium" style={{ color: "#A7ADB7" }}>
             by xAI
           </span>
         </div>
-        <p className="text-sm md:text-base mb-1.5" style={{ color: "#A7ADB7" }}>
+        <p className="text-sm md:text-base mb-3" style={{ color: "#A7ADB7" }}>
           Built by xAI — helpful, truthful, maximum truth-seeking. Elon
           Musk&apos;s AI that cuts through the noise.
         </p>
@@ -293,7 +293,7 @@ const GrokFeaturedCard = React.memo(function GrokFeaturedCard() {
           href="https://grok.x.ai"
           target="_blank"
           rel="noopener noreferrer"
-          className="btn-cyan w-full md:w-auto inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl text-base font-bold"
+          className="btn-cyan w-full md:w-auto inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl text-base font-bold"
         >
           Chat with Grok →
         </a>
@@ -311,7 +311,7 @@ const CaffeineFeaturedCard = React.memo(function CaffeineFeaturedCard() {
       initial={{ opacity: 0, y: 24 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ type: "spring", stiffness: 350, damping: 26, delay: 0.08 }}
-      className="rounded-2xl p-3.5 md:p-7 flex flex-col md:flex-row gap-3 md:gap-8 items-start md:items-center"
+      className="rounded-2xl p-5 md:p-7 flex flex-col md:flex-row gap-5 md:gap-8 items-start md:items-center h-full"
       style={{
         background: "rgba(255,255,255,0.05)",
         backdropFilter: "blur(40px)",
@@ -331,31 +331,31 @@ const CaffeineFeaturedCard = React.memo(function CaffeineFeaturedCard() {
           src={CAFFEINE_LOGO}
           alt="Caffeine.ai logo"
           fallbackText="caffeine"
-          className="ai-logo w-14 h-14 md:w-24 md:h-24 object-contain rounded-2xl bg-black/30 p-2"
+          className="ai-logo w-20 h-20 md:w-24 md:h-24 object-contain rounded-2xl bg-black/30 p-2"
           style={{
             border: logoHovered
-              ? "1px solid rgba(204,255,0,0.4)"
-              : "1px solid rgba(204,255,0,0.2)",
+              ? "1px solid rgba(204,255,0,0.5)"
+              : "1px solid rgba(204,255,0,0.25)",
             boxShadow: logoHovered
-              ? "0 0 16px rgba(204,255,0,0.2), inset 0 0 8px rgba(204,255,0,0.05)"
-              : "none",
+              ? "0 0 20px rgba(204,255,0,0.3), inset 0 0 8px rgba(204,255,0,0.08)"
+              : "0 0 8px rgba(204,255,0,0.15)",
             transition: "border-color 0.2s, box-shadow 0.2s",
           }}
         />
       </div>
       <div className="flex-1">
         <div className="flex items-center gap-2 mb-1">
-          <h2 className="text-xl md:text-3xl font-bold text-white">
+          <h2 className="text-2xl md:text-3xl font-bold text-white">
             Caffeine.ai
           </h2>
           <span className="text-sm font-medium" style={{ color: "#A7ADB7" }}>
             by Caffeine
           </span>
         </div>
-        <p className="text-sm md:text-base mb-1.5" style={{ color: "#A7ADB7" }}>
+        <p className="text-sm md:text-base mb-3" style={{ color: "#A7ADB7" }}>
           Build Full-Stack Apps on ICP by Chatting
         </p>
-        <p className="text-xs md:text-sm mb-1.5" style={{ color: "#A7ADB7" }}>
+        <p className="text-xs md:text-sm mb-3" style={{ color: "#A7ADB7" }}>
           The easiest way to create decentralized AI-powered apps on the
           Internet Computer. Chat → Code → Deploy.
         </p>
@@ -380,11 +380,7 @@ const CaffeineFeaturedCard = React.memo(function CaffeineFeaturedCard() {
           href="https://caffeine.ai"
           target="_blank"
           rel="noopener noreferrer"
-          className="w-full md:w-auto inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl text-base font-bold"
-          style={{
-            background: "linear-gradient(135deg, #CCFF00 0%, #aadd00 100%)",
-            color: "#000",
-          }}
+          className="btn-lime w-full md:w-auto inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl text-base font-bold"
         >
           Build with Caffeine →
         </a>
@@ -395,7 +391,7 @@ const CaffeineFeaturedCard = React.memo(function CaffeineFeaturedCard() {
 
 const FeaturedSection = React.memo(function FeaturedSection() {
   return (
-    <div className="mb-6">
+    <div className="mb-10">
       <div className="flex justify-center md:justify-start mb-3">
         <span
           className="text-xs font-bold tracking-widest uppercase px-3 py-1 rounded-full"
@@ -410,18 +406,30 @@ const FeaturedSection = React.memo(function FeaturedSection() {
       </div>
       {/* Mobile: horizontal scroll-snap. Desktop: 2-column grid */}
       <div
-        className="flex overflow-x-auto snap-x snap-mandatory md:grid md:grid-cols-2 md:overflow-x-visible gap-4"
+        className="featured-scroll-container flex md:grid md:grid-cols-2 gap-4"
         style={
           {
+            overflowX: "auto",
+            overflowY: "hidden",
+            scrollSnapType: "x mandatory",
+            WebkitOverflowScrolling: "touch",
             scrollbarWidth: "none",
             msOverflowStyle: "none",
+            scrollPaddingLeft: "24px",
+            paddingBottom: "4px",
           } as React.CSSProperties
         }
       >
-        <div className="snap-start shrink-0 w-[calc(100vw-48px)] md:w-auto">
+        <div
+          className="shrink-0 w-[calc(100vw-48px)] md:w-auto md:h-full"
+          style={{ scrollSnapAlign: "start", scrollSnapStop: "always" }}
+        >
           <GrokFeaturedCard />
         </div>
-        <div className="snap-start shrink-0 w-[calc(100vw-48px)] md:w-auto">
+        <div
+          className="shrink-0 w-[calc(100vw-48px)] md:w-auto md:h-full"
+          style={{ scrollSnapAlign: "start", scrollSnapStop: "always" }}
+        >
           <CaffeineFeaturedCard />
         </div>
       </div>
@@ -432,10 +440,10 @@ const FeaturedSection = React.memo(function FeaturedSection() {
 function Hero() {
   return (
     <section
-      className="relative pb-8 px-4 text-center overflow-hidden"
+      className="relative pb-16 px-4 text-center overflow-hidden"
       style={{
         background: "#000",
-        paddingTop: "calc(44px + env(safe-area-inset-top, 0px))",
+        paddingTop: "calc(80px + env(safe-area-inset-top, 0px))",
       }}
     >
       <div
