@@ -14,6 +14,7 @@ const FALLBACK_ARENA_DATA = [
     arcAgi: "74.3%",
     context: "200K",
     link: "https://claude.ai",
+    strengths: ["Reasoning", "Coding", "#1 Arena"],
   },
   {
     rank: 2,
@@ -25,6 +26,7 @@ const FALLBACK_ARENA_DATA = [
     arcAgi: "72.1%",
     context: "200K",
     link: "https://claude.ai",
+    strengths: ["SWE 80.8%", "GPQA 91%", "Agentic"],
   },
   {
     rank: 3,
@@ -36,6 +38,7 @@ const FALLBACK_ARENA_DATA = [
     arcAgi: "69.8%",
     context: "128K",
     link: "https://chatgpt.com",
+    strengths: ["Balanced", "Multimodal", "Fast"],
   },
   {
     rank: 4,
@@ -47,6 +50,7 @@ const FALLBACK_ARENA_DATA = [
     arcAgi: "77.1%",
     context: "1M",
     link: "https://gemini.google.com",
+    strengths: ["1M Context", "Multimodal", "ARC-AGI"],
   },
   {
     rank: 5,
@@ -58,6 +62,7 @@ const FALLBACK_ARENA_DATA = [
     arcAgi: "68.4%",
     context: "128K",
     link: "https://grok.x.ai",
+    strengths: ["All-rounder", "Real-time", "X Integration"],
   },
   {
     rank: 6,
@@ -69,6 +74,43 @@ const FALLBACK_ARENA_DATA = [
     arcAgi: "71.2%",
     context: "1M",
     link: "https://gemini.google.com",
+    strengths: ["Long Context", "Vision", "Efficient"],
+  },
+  {
+    rank: 7,
+    model: "DeepSeek V3",
+    provider: "DeepSeek AI",
+    elo: 1489,
+    gpqa: "83.4%",
+    sweBench: "68.2%",
+    arcAgi: "61.0%",
+    context: "64K",
+    link: "https://chat.deepseek.com",
+    strengths: ["Coding", "Math", "Open"],
+  },
+  {
+    rank: 8,
+    model: "Llama 4 Maverick",
+    provider: "Meta",
+    elo: 1486,
+    gpqa: "79.2%",
+    sweBench: "62.4%",
+    arcAgi: "58.3%",
+    context: "128K",
+    link: "https://llama.meta.com",
+    strengths: ["Open-source", "Versatile", "Fast"],
+  },
+  {
+    rank: 9,
+    model: "Mistral Large 2.1",
+    provider: "Mistral AI",
+    elo: 1483,
+    gpqa: "77.1%",
+    sweBench: "60.2%",
+    arcAgi: "55.1%",
+    context: "128K",
+    link: "https://mistral.ai",
+    strengths: ["European", "Efficient", "Coding"],
   },
 ];
 
@@ -546,6 +588,303 @@ function SourceBadge({ source }: { source: FetchSource }) {
   );
 }
 
+const ARENA_ELO_DATA = [
+  { rank: 1, model: "Claude Opus 4.6", provider: "Anthropic", elo: 1503 },
+  { rank: 2, model: "GPT-5.4", provider: "OpenAI", elo: 1495 },
+  { rank: 3, model: "Gemini 3.1 Pro", provider: "Google", elo: 1493 },
+  { rank: 4, model: "Grok-4.20", provider: "xAI", elo: 1492 },
+  { rank: 5, model: "DeepSeek R3", provider: "DeepSeek", elo: 1487 },
+  { rank: 6, model: "Llama 4 Scout", provider: "Meta", elo: 1483 },
+  { rank: 7, model: "Mistral Large 3", provider: "Mistral AI", elo: 1479 },
+  { rank: 8, model: "Command R+", provider: "Cohere", elo: 1476 },
+];
+
+function ArenaEloChart() {
+  const [animated, setAnimated] = useState(false);
+
+  useEffect(() => {
+    const t = setTimeout(() => setAnimated(true), 150);
+    return () => clearTimeout(t);
+  }, []);
+
+  const BASE = 1470;
+  const MAX_ELO = 1503;
+  const RANGE = MAX_ELO + 10 - BASE;
+
+  const getPct = (elo: number) =>
+    Math.max(5, Math.min(100, ((elo - BASE) / RANGE) * 100));
+
+  const xTicks = [1470, 1480, 1490, 1500];
+
+  return (
+    <div
+      data-ocid="benchmarks.panel"
+      style={{
+        background: "rgba(255,255,255,0.04)",
+        backdropFilter: "blur(30px)",
+        WebkitBackdropFilter: "blur(30px)",
+        border: "1px solid rgba(255,255,255,0.10)",
+        borderRadius: 20,
+        boxShadow:
+          "0 8px 40px rgba(0,0,0,0.6), 0 0 0 1px rgba(255,255,255,0.06), 0 0 60px rgba(24,214,214,0.05), inset 0 1px 0 rgba(255,255,255,0.08)",
+        padding: "24px",
+        marginBottom: 32,
+        overflow: "hidden",
+      }}
+    >
+      {/* Title row */}
+      <div
+        style={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          flexWrap: "wrap",
+          gap: 10,
+          marginBottom: 20,
+          textAlign: "center",
+        }}
+      >
+        <span
+          style={{
+            color: "#fff",
+            fontWeight: 700,
+            fontSize: "clamp(15px, 4vw, 18px)",
+            lineHeight: 1.3,
+          }}
+        >
+          Top Models by Chatbot Arena ELO
+        </span>
+        <span
+          style={{
+            background: "rgba(24,214,214,0.10)",
+            border: "1px solid rgba(24,214,214,0.22)",
+            color: "#18D6D6",
+            borderRadius: 20,
+            padding: "3px 10px",
+            fontSize: 11,
+            fontWeight: 600,
+            whiteSpace: "nowrap",
+          }}
+        >
+          March 2026
+        </span>
+      </div>
+
+      {/* Bar rows */}
+      <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+        {ARENA_ELO_DATA.map((item, i) => {
+          const isTop3 = i < 3;
+          return (
+            <div
+              key={item.model}
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: 10,
+                minHeight: 44,
+                padding: "4px 6px",
+                borderRadius: 10,
+                transition: "background 0.2s ease",
+                cursor: "default",
+              }}
+              onMouseEnter={(e) => {
+                (e.currentTarget as HTMLElement).style.background =
+                  "rgba(255,255,255,0.04)";
+                const bar = (e.currentTarget as HTMLElement).querySelector(
+                  ".elo-bar-fill",
+                ) as HTMLElement | null;
+                if (bar)
+                  bar.style.boxShadow = isTop3
+                    ? "0 0 18px rgba(24,214,214,0.75)"
+                    : "0 0 14px rgba(255,255,255,0.4)";
+              }}
+              onMouseLeave={(e) => {
+                (e.currentTarget as HTMLElement).style.background =
+                  "transparent";
+                const bar = (e.currentTarget as HTMLElement).querySelector(
+                  ".elo-bar-fill",
+                ) as HTMLElement | null;
+                if (bar)
+                  bar.style.boxShadow = isTop3
+                    ? "0 0 10px rgba(24,214,214,0.45)"
+                    : "none";
+              }}
+            >
+              {/* Rank bubble */}
+              <div
+                style={{
+                  width: 26,
+                  height: 26,
+                  flexShrink: 0,
+                  borderRadius: "50%",
+                  background: isTop3
+                    ? "rgba(24,214,214,0.18)"
+                    : "rgba(255,255,255,0.07)",
+                  border: isTop3
+                    ? "1px solid rgba(24,214,214,0.40)"
+                    : "1px solid rgba(255,255,255,0.12)",
+                  boxShadow: isTop3 ? "0 0 8px rgba(24,214,214,0.35)" : "none",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  fontWeight: 800,
+                  fontSize: 11,
+                  color: isTop3 ? "#18D6D6" : "#A7ADB7",
+                }}
+              >
+                {item.rank}
+              </div>
+
+              {/* Model + provider */}
+              <div
+                style={{
+                  flexShrink: 0,
+                  width: "clamp(90px, 26vw, 140px)",
+                  minWidth: 0,
+                }}
+              >
+                <div
+                  style={{
+                    color: "#fff",
+                    fontWeight: 700,
+                    fontSize: "clamp(10px, 2.8vw, 13px)",
+                    whiteSpace: "nowrap",
+                    overflow: "hidden",
+                    textOverflow: "ellipsis",
+                    lineHeight: 1.2,
+                  }}
+                >
+                  {item.model}
+                </div>
+                <div
+                  style={{
+                    color: "#5A616D",
+                    fontSize: "clamp(9px, 2.2vw, 10px)",
+                    lineHeight: 1,
+                    marginTop: 2,
+                    whiteSpace: "nowrap",
+                    overflow: "hidden",
+                    textOverflow: "ellipsis",
+                  }}
+                >
+                  {item.provider}
+                </div>
+              </div>
+
+              {/* Bar track */}
+              <div style={{ flex: 1, minWidth: 0, padding: "0 2px" }}>
+                <div
+                  style={{
+                    width: "100%",
+                    height: 8,
+                    background: "rgba(255,255,255,0.06)",
+                    borderRadius: 999,
+                    overflow: "hidden",
+                  }}
+                >
+                  <div
+                    className="elo-bar-fill"
+                    style={{
+                      height: "100%",
+                      borderRadius: 999,
+                      width: animated ? `${getPct(item.elo)}%` : "0%",
+                      background: isTop3
+                        ? "linear-gradient(90deg, rgba(24,214,214,0.6), rgba(24,214,214,0.9))"
+                        : "linear-gradient(90deg, rgba(255,255,255,0.35), rgba(255,255,255,0.55))",
+                      boxShadow: isTop3
+                        ? "0 0 10px rgba(24,214,214,0.45)"
+                        : "none",
+                      transition: `width 800ms cubic-bezier(0.4,0,0.2,1) ${i * 60}ms`,
+                      willChange: "width",
+                    }}
+                  />
+                </div>
+              </div>
+
+              {/* ELO value */}
+              <div
+                style={{
+                  flexShrink: 0,
+                  textAlign: "right",
+                  width: 48,
+                }}
+              >
+                <div
+                  style={{
+                    color: isTop3 ? "#18D6D6" : "#A7ADB7",
+                    fontWeight: 700,
+                    fontSize: "clamp(11px, 2.8vw, 13px)",
+                    lineHeight: 1,
+                  }}
+                >
+                  {item.elo}
+                </div>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+
+      {/* X-axis ticks */}
+      <div
+        style={{
+          marginTop: 12,
+          paddingLeft: "calc(clamp(90px, 26vw, 140px) + 36px + 10px)",
+          paddingRight: 58,
+          position: "relative",
+        }}
+      >
+        <div
+          style={{
+            width: "100%",
+            height: 1,
+            background: "rgba(255,255,255,0.08)",
+            position: "relative",
+          }}
+        >
+          {xTicks.map((tick) => {
+            const pct = getPct(tick);
+            return (
+              <div
+                key={tick}
+                style={{
+                  position: "absolute",
+                  left: `${pct}%`,
+                  top: 0,
+                  transform: "translateX(-50%)",
+                  display: "flex",
+                  flexDirection: "column",
+                  alignItems: "center",
+                }}
+              >
+                <div
+                  style={{
+                    width: 1,
+                    height: 4,
+                    background: "rgba(255,255,255,0.20)",
+                  }}
+                />
+                <span
+                  style={{
+                    fontSize: 9,
+                    color: "rgba(255,255,255,0.30)",
+                    fontWeight: 600,
+                    marginTop: 2,
+                    letterSpacing: "0.04em",
+                    whiteSpace: "nowrap",
+                  }}
+                >
+                  {tick}
+                </span>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function BenchmarksPage() {
   const [activeTab, setActiveTab] = useState(0);
   const [sortKey, setSortKey] = useState<string>("rank");
@@ -618,6 +957,17 @@ export default function BenchmarksPage() {
     boxShadow:
       "0 8px 32px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.1)",
     borderRadius: 16,
+  } as React.CSSProperties;
+
+  const pillStyle = {
+    background: "rgba(255,255,255,0.07)",
+    color: "#A7ADB7",
+    border: "1px solid rgba(255,255,255,0.1)",
+    borderRadius: 5,
+    padding: "1px 7px",
+    fontSize: 11,
+    fontWeight: 500,
+    display: "inline-block",
   } as React.CSSProperties;
 
   type HCard = {
@@ -786,7 +1136,11 @@ export default function BenchmarksPage() {
                         borderRadius: 4,
                         width: mounted ? `${Math.min(barValue, 100)}%` : "0%",
                         background: `linear-gradient(90deg, ${c.color === "#ffffff" ? "#aaa" : c.color}, #18D6D6)`,
-                        boxShadow: `0 0 8px ${c.color === "#ffffff" ? "rgba(24,214,214,0.6)" : `${c.color}99`}`,
+                        boxShadow: `0 0 8px ${
+                          c.color === "#ffffff"
+                            ? "rgba(24,214,214,0.6)"
+                            : `${c.color}99`
+                        }`,
                         transition:
                           "width 600ms cubic-bezier(0.4,0,0.2,1) 0.2s",
                       }}
@@ -939,6 +1293,24 @@ export default function BenchmarksPage() {
                       >
                         ↗ Chat
                       </a>
+                    ) : col.key === "strengths" ? (
+                      <div
+                        style={{
+                          display: "flex",
+                          gap: 4,
+                          flexWrap: "wrap",
+                          marginTop: 2,
+                        }}
+                      >
+                        {(Array.isArray(row[col.key])
+                          ? (row[col.key] as string[])
+                          : []
+                        ).map((t) => (
+                          <span key={t} style={pillStyle}>
+                            {t}
+                          </span>
+                        ))}
+                      </div>
                     ) : (
                       <span style={{ color: "#A7ADB7", fontSize: 12 }}>
                         {String(row[col.key])}
@@ -1042,7 +1414,8 @@ export default function BenchmarksPage() {
                                 : "#A7ADB7",
                           fontSize: 14,
                           fontWeight: col.key === "model" ? 600 : 400,
-                          whiteSpace: "nowrap",
+                          whiteSpace:
+                            col.key === "strengths" ? "normal" : "nowrap",
                         }}
                       >
                         {col.key === "link" ? (
@@ -1058,6 +1431,23 @@ export default function BenchmarksPage() {
                           >
                             ↗ Chat
                           </a>
+                        ) : col.key === "strengths" ? (
+                          <div
+                            style={{
+                              display: "flex",
+                              gap: 4,
+                              flexWrap: "wrap",
+                            }}
+                          >
+                            {(Array.isArray(row[col.key])
+                              ? (row[col.key] as string[])
+                              : []
+                            ).map((t) => (
+                              <span key={t} style={pillStyle}>
+                                {t}
+                              </span>
+                            ))}
+                          </div>
                         ) : (
                           String(row[col.key])
                         )}
@@ -1091,6 +1481,7 @@ export default function BenchmarksPage() {
         { key: "sweBench", label: "SWE-bench" },
         { key: "arcAgi", label: "ARC-AGI" },
         { key: "context", label: "Context" },
+        { key: "strengths", label: "Key Strengths" },
         { key: "link", label: "Chat" },
       ],
       rows: arenaData as unknown as Record<string, unknown>[],
@@ -1368,10 +1759,13 @@ export default function BenchmarksPage() {
             exit={{ opacity: 0, y: -8 }}
             transition={{ duration: 0.25 }}
           >
-            <HighlightCards
-              cards={tabContent[activeTab].highlights}
-              barMode={tabContent[activeTab].barMode}
-            />
+            {activeTab === 0 && <ArenaEloChart />}
+            {activeTab !== 0 && (
+              <HighlightCards
+                cards={tabContent[activeTab].highlights}
+                barMode={tabContent[activeTab].barMode}
+              />
+            )}
             <h2
               style={{
                 color: "#fff",
