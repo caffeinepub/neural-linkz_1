@@ -32,6 +32,11 @@ const NEW_ICON_FILTERS: Record<string, string> = {
   ideogram: "brightness(1.1)",
   "leonardo-ai": "brightness(1.0)",
   notebooklm: "brightness(1.1)",
+  dalle: "brightness(1.05) saturate(1.1)",
+  "nano-banana": "brightness(1.05) saturate(1.1)",
+  replicate: "brightness(1.0)",
+  "ai-studio-google": "brightness(1.2) contrast(1.1)",
+  "anti-gravity": "brightness(1.05) saturate(1.1)",
 };
 
 function AILogoImg({
