@@ -241,7 +241,7 @@ const GrokFeaturedCard = React.memo(function GrokFeaturedCard() {
         WebkitBackdropFilter: "blur(40px)",
         border: "1.5px solid rgba(24,214,214,0.5)",
         boxShadow:
-          "0 0 40px rgba(24,214,214,0.25), 0 0 80px rgba(24,214,214,0.1), 0 8px 32px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.12)",
+          "0 0 18px rgba(24,214,214,0.1), 0 0 36px rgba(24,214,214,0.05), 0 8px 32px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.12)",
       }}
     >
       <div
@@ -260,7 +260,7 @@ const GrokFeaturedCard = React.memo(function GrokFeaturedCard() {
               ? "1px solid rgba(255,255,255,0.12)"
               : "1px solid rgba(255,255,255,0.15)",
             boxShadow: logoHovered
-              ? "0 0 16px rgba(255,255,255,0.15), inset 0 0 8px rgba(255,255,255,0.05)"
+              ? "0 0 8px rgba(255,255,255,0.08), inset 0 0 4px rgba(255,255,255,0.03)"
               : "none",
             transition: "border-color 0.2s, box-shadow 0.2s",
           }}
@@ -323,7 +323,7 @@ const CaffeineFeaturedCard = React.memo(function CaffeineFeaturedCard() {
         WebkitBackdropFilter: "blur(40px)",
         border: "1.5px solid rgba(204,255,0,0.5)",
         boxShadow:
-          "0 0 40px rgba(204,255,0,0.25), 0 0 80px rgba(204,255,0,0.1), 0 8px 32px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.12)",
+          "0 0 18px rgba(204,255,0,0.1), 0 0 36px rgba(204,255,0,0.05), 0 8px 32px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.12)",
       }}
     >
       <div
@@ -342,8 +342,8 @@ const CaffeineFeaturedCard = React.memo(function CaffeineFeaturedCard() {
               ? "1px solid rgba(204,255,0,0.5)"
               : "1px solid rgba(204,255,0,0.25)",
             boxShadow: logoHovered
-              ? "0 0 20px rgba(204,255,0,0.3), inset 0 0 8px rgba(204,255,0,0.08)"
-              : "0 0 8px rgba(204,255,0,0.15)",
+              ? "0 0 10px rgba(204,255,0,0.12), inset 0 0 4px rgba(204,255,0,0.05)"
+              : "0 0 4px rgba(204,255,0,0.08)",
             transition: "border-color 0.2s, box-shadow 0.2s",
           }}
         />
