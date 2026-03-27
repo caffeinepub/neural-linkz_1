@@ -92,7 +92,6 @@ export const AI_MODELS: AIModel[] = [
     color: "#1DA1F2",
     initials: "Gk",
     logo: "/assets/uploads/grok-icon-019d21d9-5779-724d-b918-b3fab4175467-8.webp",
-    buttonText: "Chat with Grok",
   },
   {
     id: "caffeine-ai",
@@ -103,7 +102,6 @@ export const AI_MODELS: AIModel[] = [
     color: "#CCFF00",
     initials: "Ca",
     logo: "/assets/uploads/caffeineai-019d2eec-e466-748a-a5a7-c8d30234a018-1.jpg",
-    buttonText: "Build with Caffeine",
   },
   // Music Generation
   {
