@@ -319,7 +319,7 @@ function Hero() {
       className="relative pb-16 px-4 text-center overflow-hidden"
       style={{
         background: "#000",
-        paddingTop: "calc(128px + env(safe-area-inset-top, 0px))",
+        paddingTop: "calc(80px + env(safe-area-inset-top, 0px))",
       }}
     >
       <div
@@ -364,8 +364,7 @@ function Hero() {
           className="text-base md:text-lg max-w-xl mx-auto"
           style={{ color: "#A7ADB7" }}
         >
-          The premier onchain AI directory — discover, compare, and connect with
-          the world&apos;s best AI models.
+          Discover, Connect and Compare the World&apos;s Best AI Models
         </p>
       </motion.div>
     </section>
