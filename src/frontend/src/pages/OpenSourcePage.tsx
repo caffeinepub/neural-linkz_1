@@ -222,18 +222,6 @@ export default function OpenSourcePage() {
           transition={{ type: "spring", stiffness: 340, damping: 26 }}
           className="relative z-10 max-w-2xl mx-auto"
         >
-          <p
-            style={{
-              fontSize: 11,
-              fontWeight: 700,
-              letterSpacing: "0.25em",
-              textTransform: "uppercase",
-              color: "#18D6D6",
-              marginBottom: 14,
-            }}
-          >
-            Open Source Models
-          </p>
           <h1
             style={{
               fontSize: "clamp(2rem, 6vw, 3.5rem)",
