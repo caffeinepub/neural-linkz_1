@@ -9,6 +9,7 @@ export interface AIModel {
   color: string;
   initials: string;
   logo: string;
+  buttonText?: string;
 }
 
 export type OSCategory = "text" | "image" | "video" | "voice" | "small";

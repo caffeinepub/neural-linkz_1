@@ -83,6 +83,28 @@ export const AI_MODELS: AIModel[] = [
     initials: "Ds",
     logo: "/assets/uploads/deepseek-logo-icon-019d21d9-5693-71e0-86e9-05ce2cc5429d-7.webp",
   },
+  {
+    id: "grok-regular",
+    name: "Grok",
+    company: "xAI",
+    desc: "Built by xAI — helpful, truthful, and maximum truth-seeking.",
+    url: "https://grok.x.ai",
+    color: "#1DA1F2",
+    initials: "Gk",
+    logo: "/assets/uploads/grok-icon-019d21d9-5779-724d-b918-b3fab4175467-8.webp",
+    buttonText: "Chat with Grok",
+  },
+  {
+    id: "caffeine-ai",
+    name: "Caffeine.ai",
+    company: "On ICP",
+    desc: "Build full-stack decentralized AI apps on the Internet Computer by chatting.",
+    url: "https://caffeine.ai",
+    color: "#CCFF00",
+    initials: "Ca",
+    logo: "/assets/uploads/caffeineai-019d2eec-e466-748a-a5a7-c8d30234a018-1.jpg",
+    buttonText: "Build with Caffeine",
+  },
   // Music Generation
   {
     id: "suno",

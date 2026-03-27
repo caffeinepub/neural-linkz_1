@@ -214,7 +214,7 @@ const AICard = React.memo(function AICard({
         rel="noopener noreferrer"
         className="btn-cyan-outline w-full py-2 px-4 rounded-xl text-sm text-center font-semibold block"
       >
-        Chat Now →
+        {model.buttonText ? `${model.buttonText} →` : "Chat Now →"}
       </a>
     </motion.div>
   );
@@ -440,10 +440,10 @@ const FeaturedSection = React.memo(function FeaturedSection() {
 function Hero() {
   return (
     <section
-      className="relative pb-16 px-4 text-center overflow-hidden"
+      className="relative pb-6 px-4 text-center overflow-hidden"
       style={{
         background: "#000",
-        paddingTop: "calc(80px + env(safe-area-inset-top, 0px))",
+        paddingTop: "calc(72px + env(safe-area-inset-top, 0px))",
       }}
     >
       <div
