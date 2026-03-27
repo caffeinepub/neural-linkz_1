@@ -1459,6 +1459,19 @@ export default function App() {
   const [showTransitionShimmer, setShowTransitionShimmer] = useState(false);
   const transitionTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
+  // Refs for stable access in event handlers (avoid stale closures)
+  const drawerOpenRef = useRef(false);
+  const currentPageRef = useRef<Page>("home");
+  const backLockRef = useRef(false);
+
+  // Keep refs in sync with state
+  useEffect(() => {
+    drawerOpenRef.current = drawerOpen;
+  }, [drawerOpen]);
+  useEffect(() => {
+    currentPageRef.current = currentPage;
+  }, [currentPage]);
+
   // Cleanup transition timer on unmount
   useEffect(() => {
     return () => {
@@ -1480,7 +1493,43 @@ export default function App() {
     return () => cIC(id);
   }, []);
 
+  // Android back button: initialize history and handle popstate
+  useEffect(() => {
+    history.replaceState({ nlManaged: true }, "");
+
+    const handlePopState = () => {
+      if (backLockRef.current) return;
+
+      if (drawerOpenRef.current) {
+        // Priority 1: sheet open → close it
+        backLockRef.current = true;
+        setDrawerOpen(false);
+        setTimeout(() => {
+          backLockRef.current = false;
+        }, 400);
+      } else if (currentPageRef.current !== "home") {
+        // Priority 2: sub-page → navigate home
+        setCurrentPage("home");
+        setShowTransitionShimmer(true);
+        if (transitionTimerRef.current)
+          clearTimeout(transitionTimerRef.current);
+        transitionTimerRef.current = setTimeout(
+          () => setShowTransitionShimmer(false),
+          240,
+        );
+        scrollRef.current?.scrollTo({ top: 0, behavior: "smooth" });
+        window.scrollTo({ top: 0, behavior: "smooth" });
+      }
+      // Priority 3: on home, no sheet → do nothing, Android exits app
+    };
+
+    window.addEventListener("popstate", handlePopState);
+    return () => window.removeEventListener("popstate", handlePopState);
+  }, []); // empty deps — uses refs only
+
   const handleNavigate = useCallback((page: Page) => {
+    // Capture sheet state before any updates (called from sheet while sheet is open)
+    const isFromSheet = drawerOpenRef.current;
     setCurrentPage(page);
     scrollRef.current?.scrollTo({ top: 0, behavior: "smooth" });
     window.scrollTo({ top: 0, behavior: "smooth" });
@@ -1490,7 +1539,16 @@ export default function App() {
       () => setShowTransitionShimmer(false),
       240,
     );
-  }, []);
+    // History management for Android back button
+    if (page === "home") {
+      history.replaceState({ nlManaged: true, nlPage: "home" }, "");
+    } else if (isFromSheet) {
+      // Replace sheet's history entry with this page entry
+      history.replaceState({ nlManaged: true, nlPage: page }, "");
+    } else {
+      history.pushState({ nlManaged: true, nlPage: page }, "");
+    }
+  }, []); // no deps — uses refs only
 
   const renderPage = () => {
     switch (currentPage) {
@@ -1544,8 +1602,11 @@ export default function App() {
       <Nav onNavigate={handleNavigate} />
       <NeuralNexusOrb
         onOpen={(rect) => {
+          if (drawerOpenRef.current) return; // already open, ignore
           setOrbRect(rect);
-          setDrawerOpen((v) => !v);
+          setDrawerOpen(true);
+          // Push history entry so back button can close the sheet
+          history.pushState({ nlManaged: true, nlSheet: true }, "");
         }}
         isSheetOpen={drawerOpen}
         highFive={orbHighFive}
