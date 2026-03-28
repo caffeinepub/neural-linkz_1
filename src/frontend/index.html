@@ -141,10 +141,10 @@
         var isStandalone = window.matchMedia('(display-mode: standalone)').matches || navigator.standalone;
         var isEdge = ua.includes('Edg/');
         var isChrome = ua.includes('Chrome/') && !isEdge;
+        var isDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
 
         if (isChrome || isEdge) {
           // Unconditional: force background-color with !important priority
-          // Works in both browser and standalone mode for maximum compatibility
           document.documentElement.style.setProperty('background-color', '#000000', 'important');
           if (document.body) {
             document.body.style.setProperty('background-color', '#000000', 'important');
@@ -152,12 +152,10 @@
         }
 
         if ((isChrome || isEdge) && isStandalone) {
-          // Mark html element for CSS specificity hooks
           document.documentElement.setAttribute('data-pwa', isEdge ? 'edge' : 'chrome');
           document.documentElement.style.backgroundColor = '#000000';
           if (document.body) document.body.style.backgroundColor = '#000000';
 
-          // Force multiple repaints to catch deferred render cycles in both browsers
           var delays = isEdge ? [0, 50, 150, 400] : [0, 100, 300];
           delays.forEach(function(delay) {
             setTimeout(function() {
@@ -167,6 +165,12 @@
               if (root) root.style.backgroundColor = '#000000';
             }, delay);
           });
+        }
+
+        // Dark mode detection: apply black system bars when prefers-color-scheme: dark
+        if (isDark) {
+          document.documentElement.style.backgroundColor = '#000000';
+          if (document.body) document.body.style.backgroundColor = '#000000';
         }
       })();
     </script>
@@ -182,15 +186,13 @@
         }).catch(function() {});
       }
 
-      // forceBlackBars — runs on load for all Chrome/Edge users (not just standalone)
-      // Extra repaints handle Edge and Chrome deferred render quirks
+      // forceBlackBars — runs on load for all Chrome/Edge users
       function forceBlackBars() {
         document.documentElement.style.backgroundColor = '#000000';
         document.body.style.backgroundColor = '#000000';
         setTimeout(function() { document.body.style.backgroundColor = '#000000'; }, 100);
         setTimeout(function() { document.body.style.backgroundColor = '#000000'; }, 300);
 
-        // Additional high-priority set for Chrome/Edge specifically
         var ua = navigator.userAgent;
         if (ua.includes('Edg') || ua.includes('Chrome')) {
           document.documentElement.style.setProperty('background-color', '#000000', 'important');
@@ -198,6 +200,24 @@
       }
       window.addEventListener('load', forceBlackBars);
       document.addEventListener('visibilitychange', forceBlackBars);
+
+      // Dark mode detection: force black system bars when system is in dark mode
+      // Fires on load and on visibility change for Chrome/Edge repaint cycles
+      function applyDarkSystemBars() {
+        if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+          document.documentElement.style.backgroundColor = '#000000';
+          document.body.style.backgroundColor = '#000000';
+          // Multiple repaints for Chrome/Edge deferred render cycles
+          [0, 100, 300, 600].forEach(function(delay) {
+            setTimeout(function() {
+              document.documentElement.style.backgroundColor = '#000000';
+              document.body.style.backgroundColor = '#000000';
+            }, delay);
+          });
+        }
+      }
+      window.addEventListener('load', applyDarkSystemBars);
+      document.addEventListener('visibilitychange', applyDarkSystemBars);
     </script>
   </body>
 </html>
