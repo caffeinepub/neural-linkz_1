@@ -172,6 +172,15 @@ body {
   }
 }
 
+/* Edge PWA on Android: force black in standalone display mode */
+@media all and (display-mode: standalone) {
+  html,
+  body {
+    background: #000000 !important;
+    overscroll-behavior: none;
+  }
+}
+
 @layer utilities {
   /* ── GPU Compositing — Force hardware layer on all animated elements ──── */
   /* ── Safe-area utility class ────────────────────────────────────────── */

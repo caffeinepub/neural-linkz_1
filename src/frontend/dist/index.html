@@ -137,7 +137,6 @@
     <!-- Edge PWA / Android: force black system bars in standalone mode -->
     <script>
       (function() {
-        // Apply black system bar background for Edge PWA on Android
         var isEdge = navigator.userAgent.includes('Edg');
         var isStandalone = window.matchMedia('(display-mode: standalone)').matches
           || window.navigator.standalone === true;
@@ -146,14 +145,26 @@
           document.documentElement.style.background = '#000000';
           document.documentElement.style.backgroundColor = '#000000';
         }
-        // Also apply for any Chromium-based Android PWA standalone
         if (isStandalone) {
           document.documentElement.style.setProperty('--system-bar-bg', '#000000');
         }
+
+        // Edge-specific: force black system bars on load and visibility change
+        function forceBlackSystemBars() {
+          if (navigator.userAgent.includes('Edg')) {
+            document.documentElement.style.background = '#000000';
+            document.body && (document.body.style.background = '#000000');
+            setTimeout(function() {
+              document.documentElement.style.background = '#000000';
+            }, 300);
+          }
+        }
+        window.addEventListener('load', forceBlackSystemBars);
+        document.addEventListener('visibilitychange', forceBlackSystemBars);
       })();
     </script>
-    <script type="module" crossorigin src="/assets/index-BjQ4ZJiH.js"></script>
-    <link rel="stylesheet" crossorigin href="/assets/index-Cs6zfPe0.css">
+    <script type="module" crossorigin src="/assets/index-CHvIkPUo.js"></script>
+    <link rel="stylesheet" crossorigin href="/assets/index-BtBrIMKE.css">
   </head>
   <body>
     <div id="root"></div>
