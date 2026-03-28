@@ -49,7 +49,7 @@
     --nl-border: #232a33;
     --nl-muted-text: #a7adb7;
 
-    /* Edge PWA system bar background — overridden by JS for Edge/standalone */
+    /* System bar background token */
     --system-bar-bg: #000000;
 
     /* ── Liquid Glass Design Tokens ────────────────────────────────────────── */
@@ -92,12 +92,13 @@
   }
 }
 
-/* ── Android/Edge Edge-to-Edge: Extend black bg under system bars ────────── */
+/* ── Base: black background on all root elements ────────────────────────── */
 html,
 body,
 #root {
   background: #000000 !important;
-  color: white;
+  padding-top: env(safe-area-inset-top, 0px);
+  padding-bottom: env(safe-area-inset-bottom, 0px);
 }
 
 #root {
@@ -141,10 +142,33 @@ body {
   overflow-anchor: none;
 }
 
-/* Edge PWA on Android: reinforce safe-area fill with --system-bar-bg */
+/* Standalone PWA: lock black in all browsers including Chrome and Edge */
+@media all and (display-mode: standalone) {
+  html,
+  body,
+  #root {
+    background: #000000 !important;
+    overscroll-behavior: none;
+  }
+}
+
+/* Full-viewport black underlay — paints under system bars in all browsers */
+body::before {
+  content: "";
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: #000000;
+  z-index: -1;
+  pointer-events: none;
+}
+
+/* Pseudo-element overlays specifically for notch and bottom nav areas */
 @supports (padding-top: env(safe-area-inset-top)) {
   html {
-    background-color: var(--system-bar-bg, #000000) !important;
+    background-color: #000000 !important;
   }
   html::before {
     content: "";
@@ -154,7 +178,7 @@ body {
     left: 0;
     right: 0;
     height: env(safe-area-inset-top, 0px);
-    background: var(--system-bar-bg, #000000);
+    background: #000000;
     z-index: 9999;
     pointer-events: none;
   }
@@ -166,23 +190,29 @@ body {
     left: 0;
     right: 0;
     height: env(safe-area-inset-bottom, 0px);
-    background: var(--system-bar-bg, #000000);
+    background: #000000;
     z-index: 9999;
     pointer-events: none;
   }
 }
 
-/* Edge PWA on Android: force black in standalone display mode */
-@media all and (display-mode: standalone) {
-  html,
-  body {
-    background: #000000 !important;
-    overscroll-behavior: none;
-  }
+/* Chrome PWA standalone: high-specificity black lock */
+html[data-pwa="chrome"],
+html[data-pwa="chrome"] body,
+html[data-pwa="chrome"] #root {
+  background: #000000 !important;
+  background-color: #000000 !important;
+}
+
+/* Edge PWA standalone: high-specificity black lock */
+html[data-pwa="edge"],
+html[data-pwa="edge"] body,
+html[data-pwa="edge"] #root {
+  background: #000000 !important;
+  background-color: #000000 !important;
 }
 
 @layer utilities {
-  /* ── GPU Compositing — Force hardware layer on all animated elements ──── */
   /* ── Safe-area utility class ────────────────────────────────────────── */
   .safe-area-container {
     padding-top: env(safe-area-inset-top, 0px);
@@ -359,7 +389,6 @@ body {
 }
 
 /* ── Custom Scrollbar — Liquid Glass Theme ─────────────────────────────────── */
-/* Hide scrollbar on tabs row (already done above), style all others */
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;

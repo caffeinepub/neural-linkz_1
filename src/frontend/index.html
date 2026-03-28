@@ -2,7 +2,7 @@
   <head>
     <meta charset="UTF-8" />
     <!-- Native PWA viewport with safe area support -->
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
     <title>Neural Linkz — Decentralized AI Directory on ICP Featuring | Frontier | Open Source Models &amp; Real-Time Benchmarks</title>
     <meta name="description" content="Neural Linkz is your 24/7 onchain AI directory running on the Internet Computer (https://neural-linkz-xgf.caffeine.xyz/). Grok by xAI at the top, plus Claude, Gemini, Llama, FLUX, and categorized open-source models. Liquid glass PWA with bubble animations — built with Caffeine.ai." />
     <meta name="keywords" content="AI directory, ICP, Internet Computer, Grok, Claude, Gemini, Llama, FLUX, open source AI models, onchain AI, Caffeine.ai, PWA, decentralized AI, neural linkz, AI benchmarks, frontier AI models" />
@@ -134,33 +134,40 @@
     }
     </script>
 
-    <!-- Edge PWA / Android: force black system bars in standalone mode -->
+    <!-- Chrome + Edge PWA: force black system bars before first paint -->
     <script>
       (function() {
-        var isEdge = navigator.userAgent.includes('Edg');
-        var isStandalone = window.matchMedia('(display-mode: standalone)').matches
-          || window.navigator.standalone === true;
-        if (isEdge && isStandalone) {
-          document.documentElement.style.setProperty('--system-bar-bg', '#000000');
-          document.documentElement.style.background = '#000000';
-          document.documentElement.style.backgroundColor = '#000000';
-        }
-        if (isStandalone) {
-          document.documentElement.style.setProperty('--system-bar-bg', '#000000');
-        }
+        var ua = navigator.userAgent;
+        var isStandalone = window.matchMedia('(display-mode: standalone)').matches || navigator.standalone;
+        var isEdge = ua.includes('Edg/');
+        var isChrome = ua.includes('Chrome/') && !isEdge;
 
-        // Edge-specific: force black system bars on load and visibility change
-        function forceBlackSystemBars() {
-          if (navigator.userAgent.includes('Edg')) {
-            document.documentElement.style.background = '#000000';
-            document.body && (document.body.style.background = '#000000');
-            setTimeout(function() {
-              document.documentElement.style.background = '#000000';
-            }, 300);
+        if (isChrome || isEdge) {
+          // Unconditional: force background-color with !important priority
+          // Works in both browser and standalone mode for maximum compatibility
+          document.documentElement.style.setProperty('background-color', '#000000', 'important');
+          if (document.body) {
+            document.body.style.setProperty('background-color', '#000000', 'important');
           }
         }
-        window.addEventListener('load', forceBlackSystemBars);
-        document.addEventListener('visibilitychange', forceBlackSystemBars);
+
+        if ((isChrome || isEdge) && isStandalone) {
+          // Mark html element for CSS specificity hooks
+          document.documentElement.setAttribute('data-pwa', isEdge ? 'edge' : 'chrome');
+          document.documentElement.style.backgroundColor = '#000000';
+          if (document.body) document.body.style.backgroundColor = '#000000';
+
+          // Force multiple repaints to catch deferred render cycles in both browsers
+          var delays = isEdge ? [0, 50, 150, 400] : [0, 100, 300];
+          delays.forEach(function(delay) {
+            setTimeout(function() {
+              document.documentElement.style.backgroundColor = '#000000';
+              if (document.body) document.body.style.backgroundColor = '#000000';
+              var root = document.getElementById('root');
+              if (root) root.style.backgroundColor = '#000000';
+            }, delay);
+          });
+        }
       })();
     </script>
   </head>
@@ -168,11 +175,29 @@
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
     <script>
+      // Service worker registration — required for Chrome PWA installability
       if ('serviceWorker' in navigator) {
-        window.addEventListener('load', () => {
-          navigator.serviceWorker.register('/sw.js').catch(() => {});
-        });
+        navigator.serviceWorker.register('/sw.js').then(function(reg) {
+          reg.update();
+        }).catch(function() {});
       }
+
+      // forceBlackBars — runs on load for all Chrome/Edge users (not just standalone)
+      // Extra repaints handle Edge and Chrome deferred render quirks
+      function forceBlackBars() {
+        document.documentElement.style.backgroundColor = '#000000';
+        document.body.style.backgroundColor = '#000000';
+        setTimeout(function() { document.body.style.backgroundColor = '#000000'; }, 100);
+        setTimeout(function() { document.body.style.backgroundColor = '#000000'; }, 300);
+
+        // Additional high-priority set for Chrome/Edge specifically
+        var ua = navigator.userAgent;
+        if (ua.includes('Edg') || ua.includes('Chrome')) {
+          document.documentElement.style.setProperty('background-color', '#000000', 'important');
+        }
+      }
+      window.addEventListener('load', forceBlackBars);
+      document.addEventListener('visibilitychange', forceBlackBars);
     </script>
   </body>
 </html>

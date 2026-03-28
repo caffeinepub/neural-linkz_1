@@ -1,4 +1,4 @@
-const CACHE_NAME = 'neural-linkz-v1';
+const CACHE_NAME = 'neural-linkz-v4';
 const ASSETS = [
   '/',
   '/index.html',
@@ -29,7 +29,21 @@ self.addEventListener('fetch', (event) => {
     event.respondWith(fetch(event.request));
     return;
   }
-  // Cache-first for assets, network fallback
+  // Network-first for navigation (fixes Chrome install loop — never serve
+  // stale HTML to the install checker)
+  if (event.request.mode === 'navigate') {
+    event.respondWith(
+      fetch(event.request).then((response) => {
+        if (response.ok) {
+          const clone = response.clone();
+          caches.open(CACHE_NAME).then((cache) => cache.put(event.request, clone));
+        }
+        return response;
+      }).catch(() => caches.match(event.request))
+    );
+    return;
+  }
+  // Cache-first for static assets, network fallback
   event.respondWith(
     caches.match(event.request).then((cached) => {
       const networkFetch = fetch(event.request).then((response) => {
