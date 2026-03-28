@@ -174,8 +174,8 @@
         }
       })();
     </script>
-    <script type="module" crossorigin src="/assets/index-DFW0CJbz.js"></script>
-    <link rel="stylesheet" crossorigin href="/assets/index-NGsJ7VbV.css">
+    <script type="module" crossorigin src="/assets/index-CJkDdlHF.js"></script>
+    <link rel="stylesheet" crossorigin href="/assets/index-9vorF_M0.css">
   </head>
   <body>
     <div id="root"></div>
@@ -187,38 +187,19 @@
         }).catch(function() {});
       }
 
-      // forceBlackBars — runs on load for all Chrome/Edge users
-      function forceBlackBars() {
+      function forceFullBlackBackground() {
         document.documentElement.style.backgroundColor = '#000000';
         document.body.style.backgroundColor = '#000000';
-        setTimeout(function() { document.body.style.backgroundColor = '#000000'; }, 100);
-        setTimeout(function() { document.body.style.backgroundColor = '#000000'; }, 300);
-
-        var ua = navigator.userAgent;
-        if (ua.includes('Edg') || ua.includes('Chrome')) {
-          document.documentElement.style.setProperty('background-color', '#000000', 'important');
-        }
+        // Multiple aggressive repaints for Chrome and Edge
+        [0, 50, 150, 300, 600].forEach(function(delay) {
+          setTimeout(function() {
+            document.documentElement.style.backgroundColor = '#000000';
+            document.body.style.backgroundColor = '#000000';
+          }, delay);
+        });
       }
-      window.addEventListener('load', forceBlackBars);
-      document.addEventListener('visibilitychange', forceBlackBars);
-
-      // Dark mode detection: force black system bars when system is in dark mode
-      // Fires on load and on visibility change for Chrome/Edge repaint cycles
-      function applyDarkSystemBars() {
-        if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
-          document.documentElement.style.backgroundColor = '#000000';
-          document.body.style.backgroundColor = '#000000';
-          // Multiple repaints for Chrome/Edge deferred render cycles
-          [0, 100, 300, 600].forEach(function(delay) {
-            setTimeout(function() {
-              document.documentElement.style.backgroundColor = '#000000';
-              document.body.style.backgroundColor = '#000000';
-            }, delay);
-          });
-        }
-      }
-      window.addEventListener('load', applyDarkSystemBars);
-      document.addEventListener('visibilitychange', applyDarkSystemBars);
+      window.addEventListener('load', forceFullBlackBackground);
+      document.addEventListener('visibilitychange', forceFullBlackBackground);
     </script>
   </body>
 </html>

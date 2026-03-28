@@ -1,30 +1,48 @@
-# Neural Linkz — Dynamic Benchmarks
+# Neural Linkz
 
 ## Current State
-BenchmarksPage in App.tsx uses fully hardcoded static data arrays (arenaData, intelligenceData, openSourceData, arenaHighlights, etc.) with no fetching or refresh logic. "Last updated: March 2026" badge is static text.
+App is a premium PWA AI directory. App.tsx contains the Nav, NeuralNexusOrb, and BottomSheetMenu components. HomePage.tsx contains AICard, GrokFeaturedCard, CaffeineFeaturedCard. BenchmarksPage.tsx contains useBenchmarkData hook.
 
 ## Requested Changes (Diff)
 
 ### Add
-- `useBenchmarkData` custom hook: on mount + on manual trigger, attempt fetch from a public CORS-friendly endpoint (try Hugging Face LMArena space API or a known public JSON). On failure, fall back to the hardcoded March 2026 snapshot.
-- "Refresh Data" glass button in the Benchmarks hero area — shows a spinner while loading.
-- "Auto-refresh every 12 hours" toggle (stores timer, refreshes data if toggled on).
-- Dynamic "Last updated" timestamp that reflects when data was last fetched/refreshed.
-- Status message: if fetch fails, show "Latest data from March 2026 — click Refresh" in a small muted pill.
-- Updated disclaimer: "Scores update frequently on public leaderboards (LMArena, Artificial Analysis). Data fetched client-side."
+- localStorage key `nl_benchmarks_cached_data` to persist last successful fetch timestamp + source
+- Clear ICP canister backend comments in useBenchmarkData hook
 
 ### Modify
-- BenchmarksPage: consume data from the hook instead of inline constants. All tables and highlight cards render from hook state.
-- "Last updated" badge shows the actual last-fetched timestamp.
+1. **Reduce glimmer/shine (App.tsx)**:
+   - `rimShift` keyframe glow values reduced ~50%: `0%, 100%` frame: `14px→8px`, `0.06→0.03`, `28px→16px`, `0.04→0.02`, inset `0.12→0.07`. `33%` frame: `18px→10px`, `0.09→0.04`, `32px→18px`, `0.07→0.03`, inset `0.18→0.10`. `66%` frame: `10px→6px`, `0.05→0.025`, `22px→12px`, `0.03→0.015`, inset `0.09→0.05`.
+   - Orb hover `boxShadow`: reduce `rgba(255,255,255,0.2)→0.1`, `rgba(24,214,214,0.2)→0.1`, inset `0.3→0.18`
+   - Bottom sheet `inset 0 1.5px 0 rgba(255,255,255,0.22)→0.12`, cyan `0.08→0.04`
+   - Close orb `boxShadow`: already minimal, no change needed
+   - Active nav item text-shadow: `rgba(24,214,214,0.5)→0.3`
+
+2. **Reduce glimmer (HomePage.tsx)**:
+   - Regular card icon hover `boxShadow`: `rgba(255,255,255,0.15)→0.08`, `rgba(255,255,255,0.05)→0.03`
+   - Grok featured card outer `boxShadow`: `rgba(24,214,214,0.1)→0.06`, `rgba(24,214,214,0.05)→0.03`, inset `0.12→0.07`
+   - Grok featured card logo hover `boxShadow`: `rgba(255,255,255,0.08)→0.05`, `rgba(255,255,255,0.03)→0.02`
+   - Caffeine featured card outer `boxShadow`: `rgba(204,255,0,0.1)→0.06`, `rgba(204,255,0,0.05)→0.03`, inset `0.12→0.07`
+   - Caffeine featured card logo hover: `rgba(204,255,0,0.12)→0.07`, `rgba(204,255,0,0.08)→0.04`, `rgba(204,255,0,0.05)→0.03`
+   - Hero radial gradient: `rgba(24,214,214,0.06)→0.03`
+   - FeaturedSection `background: rgba(24,214,214,0.12)→0.07`, border `rgba(24,214,214,0.3)→0.18`
+
+3. **Nav transparency (App.tsx)**:
+   - `background: rgba(0,0,0,0.6)` → `rgba(0,0,0,0.2)`
+   - `backdropFilter: blur(30px)` → `blur(50px)`
+   - `borderBottom: rgba(255,255,255,0.12)` → `rgba(255,255,255,0.07)`
+   - `boxShadow` inset highlight: `rgba(255,255,255,0.05)→0.03`
+
+4. **Benchmarks fetch logic (BenchmarksPage.tsx)**:
+   - Wrap each Promise.allSettled fetch in better per-source try/catch
+   - Add `localStorage.setItem('nl_benchmarks_last_success', JSON.stringify({ts: Date.now(), source}))` on successful live fetch
+   - On init, read `nl_benchmarks_last_success` to restore last known source/timestamp even if interval hasn't elapsed
+   - Add detailed comments throughout useBenchmarkData marking where ICP canister calls would replace each fetch
+   - The 48h interval and visibilitychange logic already exists and is correct — keep it, just add clarity
 
 ### Remove
-- Nothing removed. All glass styling, animations, mobile layout, sortable table, ELO bars untouched.
+- Nothing
 
 ## Implementation Plan
-1. Create `useBenchmarkData` hook with: loading state, lastUpdated timestamp, fetchSource label, data state, refresh() function, autoRefresh toggle.
-2. Fetch strategy: try `https://huggingface.co/spaces/lmarena-ai/chatbot-arena` API or equivalent public JSON; CORS will likely block it — catch and fall back to snapshot immediately.
-3. Fallback snapshot = existing hardcoded March 2026 data.
-4. Refresh button: glass button with spinner icon, disabled while loading.
-5. Auto-refresh toggle: small pill toggle that sets a 12-hour interval when on.
-6. Status pill: shows source + timestamp, or fallback message.
-7. Keep all existing Framer Motion animations, glass styling, ELO bars, sortable table, mobile layout exactly as-is.
+1. Edit App.tsx: rimShift keyframes, orb hover boxShadow, bottom sheet inset highlight, nav background/blur/border
+2. Edit HomePage.tsx: card hover glows, featured card shadows, hero radial gradient
+3. Edit BenchmarksPage.tsx: improve useBenchmarkData hook with better comments, localStorage persistence of last success, cleaner error handling per source

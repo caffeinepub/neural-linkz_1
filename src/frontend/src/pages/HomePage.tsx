@@ -173,7 +173,7 @@ const AICard = React.memo(function AICard({
               ? "1px solid rgba(255,255,255,0.12)"
               : "1px solid rgba(255,255,255,0.08)",
             boxShadow: logoHovered
-              ? "0 0 16px rgba(255,255,255,0.15), inset 0 0 8px rgba(255,255,255,0.05)"
+              ? "0 0 16px rgba(255,255,255,0.08), inset 0 0 8px rgba(255,255,255,0.03)"
               : "none",
             transition: "border-color 0.2s, box-shadow 0.2s, filter 0.2s",
             filter: iconFilter,
@@ -241,7 +241,7 @@ const GrokFeaturedCard = React.memo(function GrokFeaturedCard() {
         WebkitBackdropFilter: "blur(40px)",
         border: "1.5px solid rgba(24,214,214,0.5)",
         boxShadow:
-          "0 0 18px rgba(24,214,214,0.1), 0 0 36px rgba(24,214,214,0.05), 0 8px 32px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.12)",
+          "0 0 18px rgba(24,214,214,0.06), 0 0 36px rgba(24,214,214,0.03), 0 8px 32px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.07)",
       }}
     >
       <div
@@ -260,7 +260,7 @@ const GrokFeaturedCard = React.memo(function GrokFeaturedCard() {
               ? "1px solid rgba(255,255,255,0.12)"
               : "1px solid rgba(255,255,255,0.15)",
             boxShadow: logoHovered
-              ? "0 0 8px rgba(255,255,255,0.08), inset 0 0 4px rgba(255,255,255,0.03)"
+              ? "0 0 8px rgba(255,255,255,0.05), inset 0 0 4px rgba(255,255,255,0.02)"
               : "none",
             transition: "border-color 0.2s, box-shadow 0.2s",
           }}
@@ -323,7 +323,7 @@ const CaffeineFeaturedCard = React.memo(function CaffeineFeaturedCard() {
         WebkitBackdropFilter: "blur(40px)",
         border: "1.5px solid rgba(204,255,0,0.5)",
         boxShadow:
-          "0 0 18px rgba(204,255,0,0.1), 0 0 36px rgba(204,255,0,0.05), 0 8px 32px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.12)",
+          "0 0 18px rgba(204,255,0,0.06), 0 0 36px rgba(204,255,0,0.03), 0 8px 32px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.07)",
       }}
     >
       <div
@@ -342,8 +342,8 @@ const CaffeineFeaturedCard = React.memo(function CaffeineFeaturedCard() {
               ? "1px solid rgba(204,255,0,0.5)"
               : "1px solid rgba(204,255,0,0.25)",
             boxShadow: logoHovered
-              ? "0 0 10px rgba(204,255,0,0.12), inset 0 0 4px rgba(204,255,0,0.05)"
-              : "0 0 4px rgba(204,255,0,0.08)",
+              ? "0 0 10px rgba(204,255,0,0.07), inset 0 0 4px rgba(204,255,0,0.03)"
+              : "0 0 4px rgba(204,255,0,0.04)",
             transition: "border-color 0.2s, box-shadow 0.2s",
           }}
         />
@@ -401,9 +401,9 @@ const FeaturedSection = React.memo(function FeaturedSection() {
         <span
           className="text-xs font-bold tracking-widest uppercase px-3 py-1 rounded-full"
           style={{
-            background: "rgba(24,214,214,0.12)",
+            background: "rgba(24,214,214,0.08)",
             color: "#18D6D6",
-            border: "1px solid rgba(24,214,214,0.3)",
+            border: "1px solid rgba(24,214,214,0.2)",
           }}
         >
           ★ Featured AI
@@ -455,7 +455,7 @@ function Hero() {
         className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] rounded-full pointer-events-none"
         style={{
           background:
-            "radial-gradient(ellipse, rgba(24,214,214,0.06) 0%, transparent 70%)",
+            "radial-gradient(ellipse, rgba(24,214,214,0.03) 0%, transparent 70%)",
         }}
       />
       <div

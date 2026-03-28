@@ -30,12 +30,12 @@ function Nav({ onNavigate }: { onNavigate: (page: Page) => void }) {
     <header
       className="fixed top-0 left-0 right-0 z-40 flex items-center justify-center"
       style={{
-        background: "rgba(0,0,0,0.6)",
-        backdropFilter: "blur(30px)",
-        WebkitBackdropFilter: "blur(30px)",
-        borderBottom: "1px solid rgba(255,255,255,0.12)",
+        background: "rgba(0,0,0,0.18)",
+        backdropFilter: "blur(50px)",
+        WebkitBackdropFilter: "blur(50px)",
+        borderBottom: "1px solid rgba(255,255,255,0.06)",
         boxShadow:
-          "0 4px 24px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.05)",
+          "0 4px 24px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.03)",
         height: "calc(64px + env(safe-area-inset-top, 0px))",
         paddingTop: "env(safe-area-inset-top, 0px)",
         paddingLeft: "max(16px, calc(16px + env(safe-area-inset-left, 0px)))",
@@ -137,9 +137,9 @@ function NeuralNexusOrb({
           to { transform: rotate(360deg); }
         }
         @keyframes rimShift {
-          0%, 100% { box-shadow: 0 0 14px rgba(255,255,255,0.06), 0 0 28px rgba(24,214,214,0.04), inset 0 1px 0 rgba(255,255,255,0.12); border-color: rgba(255,255,255,0.22); }
-          33% { box-shadow: 0 0 18px rgba(255,255,255,0.09), 0 0 32px rgba(24,214,214,0.07), inset 0 1px 0 rgba(255,255,255,0.18); border-color: rgba(255,255,255,0.32); }
-          66% { box-shadow: 0 0 10px rgba(255,255,255,0.05), 0 0 22px rgba(24,214,214,0.03), inset 0 1px 0 rgba(255,255,255,0.09); border-color: rgba(255,255,255,0.15); }
+          0%, 100% { box-shadow: 0 0 8px rgba(255,255,255,0.03), 0 0 16px rgba(24,214,214,0.02), inset 0 1px 0 rgba(255,255,255,0.07); border-color: rgba(255,255,255,0.18); }
+          33% { box-shadow: 0 0 10px rgba(255,255,255,0.04), 0 0 18px rgba(24,214,214,0.03), inset 0 1px 0 rgba(255,255,255,0.10); border-color: rgba(255,255,255,0.25); }
+          66% { box-shadow: 0 0 6px rgba(255,255,255,0.025), 0 0 12px rgba(24,214,214,0.015), inset 0 1px 0 rgba(255,255,255,0.05); border-color: rgba(255,255,255,0.12); }
         }
         @keyframes rippleOut {
           0% { transform: scale(1); opacity: 0.5; }
@@ -295,7 +295,7 @@ function NeuralNexusOrb({
                   : "rgba(255,255,255,0.08)",
                 border: "1px solid rgba(255,255,255,0.25)",
                 boxShadow: isHovered
-                  ? "0 8px 40px rgba(255,255,255,0.2), 0 0 64px rgba(24,214,214,0.2), inset 0 1px 0 rgba(255,255,255,0.3)"
+                  ? "0 8px 40px rgba(255,255,255,0.10), 0 0 64px rgba(24,214,214,0.10), inset 0 1px 0 rgba(255,255,255,0.18)"
                   : undefined,
                 display: "flex",
                 alignItems: "center",
@@ -775,7 +775,7 @@ function BottomSheetMenu({
               border: "1px solid rgba(255,255,255,0.12)",
               borderBottom: "none",
               boxShadow:
-                "0 -8px 60px rgba(0,0,0,0.5), inset 0 1.5px 0 rgba(255,255,255,0.22), 0 -1px 0 rgba(255,255,255,0.08), 0 -12px 40px rgba(255,255,255,0.04), 0 0 40px rgba(24,214,214,0.08)",
+                "0 -8px 60px rgba(0,0,0,0.5), inset 0 1.5px 0 rgba(255,255,255,0.12), 0 -1px 0 rgba(255,255,255,0.06), 0 -12px 40px rgba(255,255,255,0.03), 0 0 40px rgba(24,214,214,0.04)",
               display: "flex",
               flexDirection: "column",
               willChange: "transform, opacity",
@@ -1155,7 +1155,7 @@ function BottomSheetMenu({
                         letterSpacing: "-0.01em",
                         color: isActive ? "#18D6D6" : "rgba(255,255,255,0.85)",
                         textShadow: isActive
-                          ? "0 0 20px rgba(24,214,214,0.5)"
+                          ? "0 0 20px rgba(24,214,214,0.30)"
                           : "none",
                         transition: "color 150ms ease, text-shadow 150ms ease",
                       }}

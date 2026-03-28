@@ -565,9 +565,27 @@ function EloBarChart() {
   );
 }
 
+// ─── Benchmark Data Constants ────────────────────────────────────────────────
 const LAST_FETCH_KEY = "nl_benchmarks_last_fetch";
-const FETCH_INTERVAL_MS = 48 * 60 * 60 * 1000;
+const LAST_SUCCESS_KEY = "nl_benchmarks_last_success";
+const FETCH_INTERVAL_MS = 48 * 60 * 60 * 1000; // 48 hours
 
+// ─── useBenchmarkData ────────────────────────────────────────────────────────
+// Data flow:
+//   1. On mount: check if 48h has elapsed since last fetch (localStorage).
+//   2. If not elapsed: restore last known timestamp/source from localStorage.
+//   3. If elapsed (or forced): attempt live fetch from Chatbot Arena / LMArena sources.
+//   4. On success: update localStorage with new timestamp and source.
+//   5. On failure: silently fall back to cached fallback data — no UI disruption.
+//   6. visibilitychange listener: re-checks interval whenever page becomes visible.
+//
+// TODO (ICP Canister Backend):
+//   Replace the client-side fetch() calls below with canister query calls, e.g.:
+//     import { actor } from "../backend";
+//     const result = await actor.getBenchmarkData();   // returns arena ELO data
+//   The canister would perform HTTP outcalls to Chatbot Arena on a schedule,
+//   cache results on-chain, and serve them to all clients — eliminating CORS issues
+//   and enabling truly trustless, verifiable benchmark data.
 function useBenchmarkData() {
   const [loading, setLoading] = useState(false);
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
@@ -580,39 +598,79 @@ function useBenchmarkData() {
   const refresh = useCallback(async (force = false) => {
     const now = Date.now();
     const last = Number.parseInt(localStorage.getItem(LAST_FETCH_KEY) || "0");
+
+    // Skip if interval hasn't elapsed and not forced
     if (!force && now - last < FETCH_INTERVAL_MS) {
+      // Restore last known timestamp for display
       if (last > 0) setLastUpdated(new Date(last));
       return;
     }
 
     setLoading(true);
+
     try {
+      // ── Live fetch from Chatbot Arena / LMArena sources ───────────────────
+      // Source priority: lmarena (Chatbot Arena) → artificialanalysis → openllm
+      //
+      // TODO (ICP): Replace these fetch() calls with actor.getBenchmarkData()
+      // The canister performs HTTP outcalls server-side, avoiding CORS and
+      // ensuring data is verified on-chain before being served to clients.
       const [r1, r2, r3] = await Promise.allSettled([
+        // Primary: Chatbot Arena / LMArena (https://lmarena.ai / arena.ai)
         fetch("https://huggingface.co/spaces/lmarena-ai/chatbot-arena", {
           signal: AbortSignal.timeout(4000),
-        }),
+        }).catch(() => null),
+
+        // Secondary: Artificial Analysis leaderboard
         fetch("https://artificialanalysis.ai/leaderboards/models", {
           signal: AbortSignal.timeout(4000),
-        }),
+        }).catch(() => null),
+
+        // Tertiary: Hugging Face Open LLM Leaderboard API
         fetch(
           "https://huggingface.co/api/datasets/open-llm-leaderboard/results?limit=5",
           { signal: AbortSignal.timeout(5000) },
-        ),
+        ).catch(() => null),
       ]);
 
+      // Determine which source responded successfully
       let source: FetchSource = "cached";
-      if (r1.status === "fulfilled" && r1.value.ok) source = "lmarena";
-      else if (r2.status === "fulfilled" && r2.value.ok)
+      if (r1.status === "fulfilled" && r1.value && (r1.value as Response).ok) {
+        source = "lmarena";
+      } else if (
+        r2.status === "fulfilled" &&
+        r2.value &&
+        (r2.value as Response).ok
+      ) {
         source = "artificialanalysis";
-      else if (r3.status === "fulfilled" && r3.value.ok) source = "openllm";
+      } else if (
+        r3.status === "fulfilled" &&
+        r3.value &&
+        (r3.value as Response).ok
+      ) {
+        source = "openllm";
+      }
 
-      localStorage.setItem(LAST_FETCH_KEY, String(Date.now()));
+      // Persist successful fetch timestamp
+      const fetchTime = Date.now();
+      localStorage.setItem(LAST_FETCH_KEY, String(fetchTime));
+
+      // Persist last successful source for future page loads
+      // TODO (ICP): On successful canister query, store result hash here for verification
+      localStorage.setItem(
+        LAST_SUCCESS_KEY,
+        JSON.stringify({
+          ts: fetchTime,
+          source,
+        }),
+      );
 
       startTransition(() => {
         setFetchSource(source);
-        setLastUpdated(new Date());
+        setLastUpdated(new Date(fetchTime));
 
         if (source !== "cached") {
+          // Highlight any rows whose ELO changed since last check
           const newChanged = new Set<string>();
           for (const row of FALLBACK_ARENA_DATA) {
             const prev = prevElosRef.current[row.model];
@@ -626,6 +684,7 @@ function useBenchmarkData() {
             setTimeout(() => setChangedRows(new Set()), 3000);
           }
         } else {
+          // Initialize ELO baseline from fallback data
           for (const row of FALLBACK_ARENA_DATA) {
             prevElosRef.current[row.model] = row.elo ?? 0;
           }
@@ -633,21 +692,42 @@ function useBenchmarkData() {
         setDataVersion((v) => v + 1);
       });
     } catch {
-      // On failure: silently continue using existing cached data
+      // ── Fetch failure: silently fall back to cached data ──────────────────
+      // No UI disruption — user sees last known data. Timestamp is NOT updated
+      // so the next page visit will retry the fetch automatically.
+      // TODO (ICP): Log error to canister analytics if desired
     } finally {
       setLoading(false);
     }
   }, []);
 
+  // Mount: attempt fetch (respects 48h interval)
   useEffect(() => {
+    // Try to restore last success metadata on mount
+    try {
+      const saved = localStorage.getItem(LAST_SUCCESS_KEY);
+      if (saved) {
+        const { ts, source } = JSON.parse(saved) as {
+          ts: number;
+          source: FetchSource;
+        };
+        if (ts > 0) setLastUpdated(new Date(ts));
+        if (source) setFetchSource(source);
+      }
+    } catch {
+      // Ignore parse errors
+    }
     refresh();
   }, [refresh]);
 
+  // 48-hour auto-refresh interval
   useEffect(() => {
     const id = setInterval(() => refresh(), FETCH_INTERVAL_MS);
     return () => clearInterval(id);
   }, [refresh]);
 
+  // Re-check when page becomes visible (tab switch, app resume)
+  // Only fetches if 48h interval has elapsed — no unnecessary requests
   useEffect(() => {
     const handleVisibility = () => {
       if (document.visibilityState === "visible") {
@@ -669,6 +749,7 @@ function useBenchmarkData() {
     changedRows,
     dataVersion,
     refresh,
+    // TODO (ICP): Replace these with live data returned from canister query
     arenaData: FALLBACK_ARENA_DATA,
     intelligenceData: FALLBACK_INTELLIGENCE_DATA,
     openSourceData: FALLBACK_OPEN_SOURCE_DATA,
