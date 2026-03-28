@@ -35,9 +35,5 @@
     }
   ],
   "screenshots": [],
-  "prefer_related_applications": false,
-  "display_override": [
-    "window-controls-overlay",
-    "standalone"
-  ]
+  "prefer_related_applications": false
 }
