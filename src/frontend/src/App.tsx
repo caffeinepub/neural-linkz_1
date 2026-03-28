@@ -130,16 +130,16 @@ function NeuralNexusOrb({
       <style>{`
         @keyframes orbPulse {
           0%, 100% { transform: scale(1); }
-          50% { transform: scale(1.07); }
+          50% { transform: scale(1.05); }
         }
         @keyframes neuralRotate {
           from { transform: rotate(0deg); }
           to { transform: rotate(360deg); }
         }
         @keyframes rimShift {
-          0%, 100% { box-shadow: 0 0 24px rgba(255,255,255,0.12), 0 0 48px rgba(24,214,214,0.08), inset 0 1px 0 rgba(255,255,255,0.2); border-color: rgba(255,255,255,0.25); }
-          33% { box-shadow: 0 0 30px rgba(255,255,255,0.18), 0 0 56px rgba(24,214,214,0.14), inset 0 1px 0 rgba(255,255,255,0.35); border-color: rgba(255,255,255,0.45); }
-          66% { box-shadow: 0 0 20px rgba(255,255,255,0.10), 0 0 40px rgba(24,214,214,0.06), inset 0 1px 0 rgba(255,255,255,0.15); border-color: rgba(255,255,255,0.18); }
+          0%, 100% { box-shadow: 0 0 14px rgba(255,255,255,0.06), 0 0 28px rgba(24,214,214,0.04), inset 0 1px 0 rgba(255,255,255,0.12); border-color: rgba(255,255,255,0.22); }
+          33% { box-shadow: 0 0 18px rgba(255,255,255,0.09), 0 0 32px rgba(24,214,214,0.07), inset 0 1px 0 rgba(255,255,255,0.18); border-color: rgba(255,255,255,0.32); }
+          66% { box-shadow: 0 0 10px rgba(255,255,255,0.05), 0 0 22px rgba(24,214,214,0.03), inset 0 1px 0 rgba(255,255,255,0.09); border-color: rgba(255,255,255,0.15); }
         }
         @keyframes rippleOut {
           0% { transform: scale(1); opacity: 0.5; }
@@ -862,7 +862,7 @@ function BottomSheetMenu({
                     background: "rgba(255,255,255,0.08)",
                     border: "1px solid rgba(255,255,255,0.22)",
                     boxShadow:
-                      "0 0 20px rgba(255,255,255,0.1), 0 0 40px rgba(24,214,214,0.08), inset 0 1px 0 rgba(255,255,255,0.18)",
+                      "0 0 10px rgba(255,255,255,0.05), 0 0 22px rgba(24,214,214,0.04), inset 0 1px 0 rgba(255,255,255,0.12)",
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "center",
