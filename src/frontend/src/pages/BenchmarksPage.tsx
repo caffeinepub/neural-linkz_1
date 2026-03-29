@@ -566,26 +566,144 @@ function EloBarChart() {
 }
 
 // ─── Benchmark Data Constants ────────────────────────────────────────────────
+
+// localStorage key for the last fetch attempt timestamp
 const LAST_FETCH_KEY = "nl_benchmarks_last_fetch";
+
+// localStorage key for the last successful fetch metadata (source + timestamp)
 const LAST_SUCCESS_KEY = "nl_benchmarks_last_success";
-const FETCH_INTERVAL_MS = 48 * 60 * 60 * 1000; // 48 hours
+
+// localStorage key for the stored benchmark data snapshot (self-cleaning cache)
+// Structure: { storedAt: number, source: FetchSource, version: number }[]
+// Each entry represents one successful fetch session stored onchain-style as JSON.
+// TODO (ICP Canister): Replace with canister stable-memory storage when backend is ready.
+const CACHE_DATA_KEY = "nl_benchmarks_cache_v1";
+
+// Auto-fetch every 48 hours when page is visible
+const FETCH_INTERVAL_MS = 48 * 60 * 60 * 1000;
+
+// Maximum age for stored cache entries — older entries are deleted automatically
+const CACHE_MAX_AGE_MS = 30 * 24 * 60 * 60 * 1000; // 30 days
+
+// ─── Cache Storage Helpers ───────────────────────────────────────────────────
+
+/** Represents one stored benchmark data snapshot. */
+interface CacheEntry {
+  storedAt: number; // Unix ms timestamp when this entry was saved
+  source: FetchSource; // Which source produced this data
+  version: number; // Monotonic version counter for ordering
+}
+
+/**
+ * loadCacheEntries — Reads all stored cache entries from localStorage.
+ * Returns an empty array if the key is missing or corrupt.
+ */
+function loadCacheEntries(): CacheEntry[] {
+  try {
+    const raw = localStorage.getItem(CACHE_DATA_KEY);
+    if (!raw) return [];
+    const parsed = JSON.parse(raw) as CacheEntry[];
+    return Array.isArray(parsed) ? parsed : [];
+  } catch {
+    // Corrupt data — treat as empty; will be overwritten on next successful fetch
+    return [];
+  }
+}
+
+/**
+ * saveDataSnapshot — Persists a new successful fetch snapshot to localStorage.
+ * Immediately removes any entries older than CACHE_MAX_AGE_MS (30 days) so
+ * storage stays self-cleaning and never accumulates stale data.
+ *
+ * TODO (ICP Canister): Replace localStorage.setItem with a canister update call:
+ *   await actor.storeBenchmarkSnapshot({ source, storedAt });
+ *   The canister should apply the same 30-day TTL on stable memory.
+ */
+function saveDataSnapshot(source: FetchSource): CacheEntry {
+  const now = Date.now();
+  const existing = loadCacheEntries();
+
+  // Remove entries older than 30 days immediately upon a successful fetch
+  const fresh = existing.filter((e) => now - e.storedAt < CACHE_MAX_AGE_MS);
+
+  // Build the new entry
+  const newEntry: CacheEntry = {
+    storedAt: now,
+    source,
+    version: (fresh[fresh.length - 1]?.version ?? 0) + 1,
+  };
+
+  // Append and persist — storage is always clean (max 30 days of history)
+  const updated = [...fresh, newEntry];
+  try {
+    localStorage.setItem(CACHE_DATA_KEY, JSON.stringify(updated));
+  } catch {
+    // Storage quota exceeded — clear old entries and try once more
+    const trimmed = updated.slice(-5); // keep only last 5 entries
+    try {
+      localStorage.setItem(CACHE_DATA_KEY, JSON.stringify(trimmed));
+    } catch {
+      /* ignore */
+    }
+  }
+
+  return newEntry;
+}
+
+/**
+ * loadFreshSnapshot — Returns the most recent stored cache entry that is
+ * younger than 30 days, or null if none exists.
+ * Also runs a passive cleanup pass to remove any expired entries.
+ *
+ * TODO (ICP Canister): Replace with a canister query:
+ *   const snapshot = await actor.getLatestBenchmarkSnapshot();
+ *   if (!snapshot || Date.now() - snapshot.storedAt > CACHE_MAX_AGE_MS) return null;
+ */
+function loadFreshSnapshot(): CacheEntry | null {
+  const now = Date.now();
+  const entries = loadCacheEntries();
+
+  // Passive cleanup: remove entries older than 30 days and persist
+  const fresh = entries.filter((e) => now - e.storedAt < CACHE_MAX_AGE_MS);
+  if (fresh.length !== entries.length) {
+    // Some entries expired — persist the cleaned list
+    try {
+      localStorage.setItem(CACHE_DATA_KEY, JSON.stringify(fresh));
+    } catch {
+      /* ignore */
+    }
+  }
+
+  if (fresh.length === 0) return null;
+
+  // Return the most recent entry (last in the sorted array)
+  return fresh[fresh.length - 1];
+}
 
 // ─── useBenchmarkData ────────────────────────────────────────────────────────
 // Data flow:
-//   1. On mount: check if 48h has elapsed since last fetch (localStorage).
-//   2. If not elapsed: restore last known timestamp/source from localStorage.
-//   3. If elapsed (or forced): attempt live fetch from Chatbot Arena / LMArena sources.
-//   4. On success: update localStorage with new timestamp and source.
-//   5. On failure: silently fall back to cached fallback data — no UI disruption.
-//   6. visibilitychange listener: re-checks interval whenever page becomes visible.
+//   1. On mount: run passive cache cleanup (removes entries > 30 days old).
+//   2. Restore last known display state (timestamp + source) from localStorage.
+//   3. Check if 48h has elapsed since last fetch attempt.
+//   4. If elapsed (or forced): attempt live fetch from Chatbot Arena / LMArena.
+//   5. On success: save snapshot via saveDataSnapshot(), clear data older than
+//      30 days automatically, and update UI state.
+//   6. On failure: fall back to the most recent stored snapshot (< 30 days old)
+//      via loadFreshSnapshot(). If none available, display built-in fallback data.
+//   7. visibilitychange listener: re-checks 48h interval only when page is visible.
+//   8. setInterval: fires every 48h while the component is mounted.
+//
+// Storage strategy:
+//   - Client-side: localStorage with 30-day TTL enforced at read and write time.
+//   - Self-cleaning: old entries are deleted on every successful fetch (write-time)
+//     AND on every page load (read-time), so stale data never accumulates.
+//   - Onchain-ready: TODO markers below show exactly where to swap in ICP calls.
 //
 // TODO (ICP Canister Backend):
-//   Replace the client-side fetch() calls below with canister query calls, e.g.:
-//     import { actor } from "../backend";
-//     const result = await actor.getBenchmarkData();   // returns arena ELO data
-//   The canister would perform HTTP outcalls to Chatbot Arena on a schedule,
-//   cache results on-chain, and serve them to all clients — eliminating CORS issues
-//   and enabling truly trustless, verifiable benchmark data.
+//   Replace client-side fetch() calls with actor.getBenchmarkData(), and replace
+//   localStorage helpers with canister stable-memory equivalents. The canister
+//   would perform HTTP outcalls to Chatbot Arena on a schedule, apply the 30-day
+//   TTL on-chain, and serve verified data to all clients — eliminating CORS issues.
 function useBenchmarkData() {
   const [loading, setLoading] = useState(false);
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
@@ -599,9 +717,9 @@ function useBenchmarkData() {
     const now = Date.now();
     const last = Number.parseInt(localStorage.getItem(LAST_FETCH_KEY) || "0");
 
-    // Skip if interval hasn't elapsed and not forced
+    // Skip if 48h interval hasn't elapsed and fetch wasn't forced by user
     if (!force && now - last < FETCH_INTERVAL_MS) {
-      // Restore last known timestamp for display
+      // Restore last known timestamp for the "Last updated" display
       if (last > 0) setLastUpdated(new Date(last));
       return;
     }
@@ -610,11 +728,11 @@ function useBenchmarkData() {
 
     try {
       // ── Live fetch from Chatbot Arena / LMArena sources ───────────────────
-      // Source priority: lmarena (Chatbot Arena) → artificialanalysis → openllm
+      // Source priority: lmarena → artificialanalysis → openllm
       //
-      // TODO (ICP): Replace these fetch() calls with actor.getBenchmarkData()
-      // The canister performs HTTP outcalls server-side, avoiding CORS and
-      // ensuring data is verified on-chain before being served to clients.
+      // TODO (ICP): Replace these fetch() calls with:
+      //   const result = await actor.getBenchmarkData();
+      //   source = result.source; — canister handles HTTP outcalls server-side
       const [r1, r2, r3] = await Promise.allSettled([
         // Primary: Chatbot Arena / LMArena (https://lmarena.ai / arena.ai)
         fetch("https://huggingface.co/spaces/lmarena-ai/chatbot-arena", {
@@ -651,18 +769,20 @@ function useBenchmarkData() {
         source = "openllm";
       }
 
-      // Persist successful fetch timestamp
+      // ── Persist successful fetch ──────────────────────────────────────────
+      // saveDataSnapshot() stores this entry AND automatically deletes any
+      // entries older than 30 days — storage is always self-cleaning.
       const fetchTime = Date.now();
       localStorage.setItem(LAST_FETCH_KEY, String(fetchTime));
 
-      // Persist last successful source for future page loads
-      // TODO (ICP): On successful canister query, store result hash here for verification
+      // Save snapshot and clean up old entries (> 30 days) in one call
+      // TODO (ICP): Replace with await actor.storeBenchmarkSnapshot({ source, storedAt: fetchTime })
+      saveDataSnapshot(source);
+
+      // Keep legacy LAST_SUCCESS_KEY for backward compatibility with older installs
       localStorage.setItem(
         LAST_SUCCESS_KEY,
-        JSON.stringify({
-          ts: fetchTime,
-          source,
-        }),
+        JSON.stringify({ ts: fetchTime, source }),
       );
 
       startTransition(() => {
@@ -670,7 +790,7 @@ function useBenchmarkData() {
         setLastUpdated(new Date(fetchTime));
 
         if (source !== "cached") {
-          // Highlight any rows whose ELO changed since last check
+          // Highlight any rows whose ELO changed since the last check
           const newChanged = new Set<string>();
           for (const row of FALLBACK_ARENA_DATA) {
             const prev = prevElosRef.current[row.model];
@@ -692,18 +812,36 @@ function useBenchmarkData() {
         setDataVersion((v) => v + 1);
       });
     } catch {
-      // ── Fetch failure: silently fall back to cached data ──────────────────
-      // No UI disruption — user sees last known data. Timestamp is NOT updated
-      // so the next page visit will retry the fetch automatically.
-      // TODO (ICP): Log error to canister analytics if desired
+      // ── Fetch failure: fall back to most recent stored snapshot ──────────
+      // loadFreshSnapshot() returns the newest entry younger than 30 days,
+      // or null if all entries have expired or none exist.
+      // Timestamp is NOT updated, so the next page visit will retry automatically.
+      //
+      // TODO (ICP): On canister query failure, use:
+      //   const snapshot = await actor.getLatestBenchmarkSnapshot();
+      const snapshot = loadFreshSnapshot();
+      if (snapshot) {
+        // Use the stored snapshot metadata for the UI display
+        startTransition(() => {
+          setFetchSource(snapshot.source);
+          setLastUpdated(new Date(snapshot.storedAt));
+        });
+      }
+      // If no valid snapshot exists (all expired or first run), UI keeps the
+      // built-in FALLBACK_ARENA_DATA — no disruption, no error shown to user
     } finally {
       setLoading(false);
     }
   }, []);
 
-  // Mount: attempt fetch (respects 48h interval)
+  // Mount: run passive cache cleanup, restore display state, then attempt fetch
   useEffect(() => {
-    // Try to restore last success metadata on mount
+    // Passive cleanup on mount: loadFreshSnapshot() trims expired entries from localStorage
+    // This ensures storage never accumulates stale data even between successful fetches
+    // TODO (ICP): The canister should apply the same TTL cleanup on its stable memory
+    const snapshot = loadFreshSnapshot();
+
+    // Try to restore display state from legacy LAST_SUCCESS_KEY for backward compatibility
     try {
       const saved = localStorage.getItem(LAST_SUCCESS_KEY);
       if (saved) {
@@ -713,21 +851,32 @@ function useBenchmarkData() {
         };
         if (ts > 0) setLastUpdated(new Date(ts));
         if (source) setFetchSource(source);
+      } else if (snapshot) {
+        // Fall back to new cache system if legacy key not present
+        setLastUpdated(new Date(snapshot.storedAt));
+        setFetchSource(snapshot.source);
       }
     } catch {
-      // Ignore parse errors
+      // Ignore parse errors — UI will show defaults
     }
+
     refresh();
   }, [refresh]);
 
-  // 48-hour auto-refresh interval
+  // 48-hour auto-refresh interval — fires while the component is mounted
+  // Only triggers when page is in the foreground (visibility check in callback)
   useEffect(() => {
-    const id = setInterval(() => refresh(), FETCH_INTERVAL_MS);
+    const id = setInterval(() => {
+      // Only refresh if the page is currently visible to avoid wasting resources
+      if (document.visibilityState === "visible") {
+        refresh();
+      }
+    }, FETCH_INTERVAL_MS);
     return () => clearInterval(id);
   }, [refresh]);
 
-  // Re-check when page becomes visible (tab switch, app resume)
-  // Only fetches if 48h interval has elapsed — no unnecessary requests
+  // Re-check when page becomes visible (tab switch, app resume, screen unlock)
+  // Only fetches if 48h interval has elapsed — no unnecessary background requests
   useEffect(() => {
     const handleVisibility = () => {
       if (document.visibilityState === "visible") {
@@ -750,6 +899,8 @@ function useBenchmarkData() {
     dataVersion,
     refresh,
     // TODO (ICP): Replace these with live data returned from canister query
+    // When the canister has real data, swap FALLBACK_ARENA_DATA with the
+    // parsed canister response here.
     arenaData: FALLBACK_ARENA_DATA,
     intelligenceData: FALLBACK_INTELLIGENCE_DATA,
     openSourceData: FALLBACK_OPEN_SOURCE_DATA,
@@ -758,7 +909,6 @@ function useBenchmarkData() {
     openSourceHighlights: FALLBACK_OPEN_SOURCE_HIGHLIGHTS,
   };
 }
-
 function GlassSpinner() {
   return (
     <div

@@ -1353,6 +1353,7 @@ function PWAInstallBanner() {
   const [deferredPrompt, setDeferredPrompt] =
     useState<BeforeInstallPromptEvent | null>(null);
   const [dismissed, setDismissed] = useState(false);
+  const [visible, setVisible] = useState(false);
 
   useEffect(() => {
     const handler = (e: Event) => {
@@ -1363,6 +1364,20 @@ function PWAInstallBanner() {
     return () => window.removeEventListener("beforeinstallprompt", handler);
   }, []);
 
+  // Show toast after 1.5s initial delay once prompt is available
+  useEffect(() => {
+    if (!deferredPrompt || dismissed) return;
+    const showTimer = setTimeout(() => setVisible(true), 1500);
+    return () => clearTimeout(showTimer);
+  }, [deferredPrompt, dismissed]);
+
+  // Auto-dismiss after exactly 30 seconds once visible
+  useEffect(() => {
+    if (!visible) return;
+    const dismissTimer = setTimeout(() => setDismissed(true), 30000);
+    return () => clearTimeout(dismissTimer);
+  }, [visible]);
+
   const handleInstall = async () => {
     if (!deferredPrompt) return;
     await deferredPrompt.prompt();
@@ -1370,7 +1385,11 @@ function PWAInstallBanner() {
     if (outcome === "accepted") setDeferredPrompt(null);
   };
 
-  if (!deferredPrompt || dismissed) return null;
+  const handleDismiss = () => {
+    setDismissed(true);
+  };
+
+  if (!deferredPrompt || dismissed || !visible) return null;
 
   return (
     <AnimatePresence>
@@ -1396,7 +1415,7 @@ function PWAInstallBanner() {
         }}
       >
         <img
-          src="/assets/generated/neural-nexus-icon-192.dim_192x192.png"
+          src="/assets/uploads/nano-banana-2_futuristic_minimalist_logo_for_neural_linkz_an_ai_directory_app_deep_space_vanta-0-019d1c67-800b-710d-a1c5-eb045ada3bc9-1.jpg"
           alt="Neural Linkz"
           className="w-10 h-10 rounded-full flex-shrink-0 object-cover"
           style={{ boxShadow: "0 0 12px rgba(24,214,214,0.4)" }}
@@ -1425,7 +1444,7 @@ function PWAInstallBanner() {
         <button
           type="button"
           data-ocid="pwa.close_button"
-          onClick={() => setDismissed(true)}
+          onClick={handleDismiss}
           className="w-7 h-7 flex items-center justify-center rounded-full transition-all flex-shrink-0"
           style={{
             color: "rgba(255,255,255,0.4)",
