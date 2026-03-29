@@ -5,6 +5,8 @@ import type { AIModel } from "../types";
 
 const CAFFEINE_LOGO =
   "/assets/uploads/caffeineai-019d2eec-e466-748a-a5a7-c8d30234a018-1.jpg";
+const CLAUDE_LOGO =
+  "/assets/uploads/claude-ai-icon-019d21d9-5604-75eb-b393-5b31129f9f9b-1.webp";
 
 // Brightness/contrast filters for icons that need dark-mode visibility boost.
 const NEW_ICON_FILTERS: Record<string, string> = {
@@ -14,7 +16,6 @@ const NEW_ICON_FILTERS: Record<string, string> = {
   mistral: "brightness(1.1) saturate(1.15)",
   glm: "brightness(1.3) contrast(1.1) saturate(1.1)",
   "minimax-music": "brightness(1.1) saturate(1.1)",
-  // new additions
   midjourney: "brightness(1.0)",
   flux: "brightness(1.1)",
   "adobe-firefly": "brightness(1.0)",
@@ -145,9 +146,10 @@ const AICard = React.memo(function AICard({
         background: "rgba(255,255,255,0.05)",
         backdropFilter: "blur(30px)",
         WebkitBackdropFilter: "blur(30px)",
-        border: "1px solid rgba(255,255,255,0.12)",
+        border: "1px solid rgba(255,255,255,0.10)",
+        // Reduced glow: softer box-shadow (~50% less intensity)
         boxShadow:
-          "0 8px 32px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.1)",
+          "0 8px 32px rgba(0,0,0,0.45), inset 0 1px 0 rgba(255,255,255,0.06)",
         transform: "translateZ(0)",
         backfaceVisibility: "hidden",
         minHeight: "245px",
@@ -170,10 +172,11 @@ const AICard = React.memo(function AICard({
           className="ai-logo w-[72px] h-[72px] sm:w-[88px] sm:h-[88px] flex-shrink-0 rounded-xl object-contain bg-black/30 p-1.5"
           style={{
             border: logoHovered
-              ? "1px solid rgba(255,255,255,0.12)"
-              : "1px solid rgba(255,255,255,0.08)",
+              ? "1px solid rgba(255,255,255,0.10)"
+              : "1px solid rgba(255,255,255,0.06)",
+            // Reduced hover glow: ~50% less intensity
             boxShadow: logoHovered
-              ? "0 0 16px rgba(255,255,255,0.08), inset 0 0 8px rgba(255,255,255,0.03)"
+              ? "0 0 10px rgba(255,255,255,0.05), inset 0 0 5px rgba(255,255,255,0.02)"
               : "none",
             transition: "border-color 0.2s, box-shadow 0.2s, filter 0.2s",
             filter: iconFilter,
@@ -239,9 +242,10 @@ const GrokFeaturedCard = React.memo(function GrokFeaturedCard() {
         background: "rgba(255,255,255,0.05)",
         backdropFilter: "blur(40px)",
         WebkitBackdropFilter: "blur(40px)",
-        border: "1.5px solid rgba(24,214,214,0.5)",
+        border: "1.5px solid rgba(24,214,214,0.4)",
+        // Reduced glow: ~45% less intensity
         boxShadow:
-          "0 0 18px rgba(24,214,214,0.06), 0 0 36px rgba(24,214,214,0.03), 0 8px 32px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.07)",
+          "0 0 10px rgba(24,214,214,0.04), 0 0 20px rgba(24,214,214,0.02), 0 8px 32px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.05)",
       }}
     >
       <div
@@ -257,10 +261,10 @@ const GrokFeaturedCard = React.memo(function GrokFeaturedCard() {
           className="ai-logo w-20 h-20 md:w-24 md:h-24 object-contain rounded-2xl bg-black/30 p-2"
           style={{
             border: logoHovered
-              ? "1px solid rgba(255,255,255,0.12)"
-              : "1px solid rgba(255,255,255,0.15)",
+              ? "1px solid rgba(255,255,255,0.10)"
+              : "1px solid rgba(255,255,255,0.12)",
             boxShadow: logoHovered
-              ? "0 0 8px rgba(255,255,255,0.05), inset 0 0 4px rgba(255,255,255,0.02)"
+              ? "0 0 6px rgba(255,255,255,0.04), inset 0 0 3px rgba(255,255,255,0.02)"
               : "none",
             transition: "border-color 0.2s, box-shadow 0.2s",
           }}
@@ -283,7 +287,7 @@ const GrokFeaturedCard = React.memo(function GrokFeaturedCard() {
               key={tag}
               className="px-2 py-0.5 rounded-md"
               style={{
-                background: "rgba(24,214,214,0.08)",
+                background: "rgba(24,214,214,0.07)",
                 color: "#18D6D6",
               }}
             >
@@ -321,9 +325,10 @@ const CaffeineFeaturedCard = React.memo(function CaffeineFeaturedCard() {
         background: "rgba(255,255,255,0.05)",
         backdropFilter: "blur(40px)",
         WebkitBackdropFilter: "blur(40px)",
-        border: "1.5px solid rgba(204,255,0,0.5)",
+        border: "1.5px solid rgba(204,255,0,0.4)",
+        // Reduced glow: ~45% less intensity
         boxShadow:
-          "0 0 18px rgba(204,255,0,0.06), 0 0 36px rgba(204,255,0,0.03), 0 8px 32px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.07)",
+          "0 0 10px rgba(204,255,0,0.04), 0 0 20px rgba(204,255,0,0.02), 0 8px 32px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.05)",
       }}
     >
       <div
@@ -339,11 +344,11 @@ const CaffeineFeaturedCard = React.memo(function CaffeineFeaturedCard() {
           className="ai-logo w-20 h-20 md:w-24 md:h-24 object-contain rounded-2xl bg-black/30 p-2"
           style={{
             border: logoHovered
-              ? "1px solid rgba(204,255,0,0.5)"
-              : "1px solid rgba(204,255,0,0.25)",
+              ? "1px solid rgba(204,255,0,0.4)"
+              : "1px solid rgba(204,255,0,0.18)",
             boxShadow: logoHovered
-              ? "0 0 10px rgba(204,255,0,0.07), inset 0 0 4px rgba(204,255,0,0.03)"
-              : "0 0 4px rgba(204,255,0,0.04)",
+              ? "0 0 7px rgba(204,255,0,0.05), inset 0 0 3px rgba(204,255,0,0.02)"
+              : "0 0 3px rgba(204,255,0,0.03)",
             transition: "border-color 0.2s, box-shadow 0.2s",
           }}
         />
@@ -370,7 +375,7 @@ const CaffeineFeaturedCard = React.memo(function CaffeineFeaturedCard() {
               key={tag}
               className="px-2 py-0.5 rounded-md"
               style={{
-                background: "rgba(204,255,0,0.08)",
+                background: "rgba(204,255,0,0.07)",
                 color: "#CCFF00",
               }}
             >
@@ -394,6 +399,94 @@ const CaffeineFeaturedCard = React.memo(function CaffeineFeaturedCard() {
   );
 });
 
+const ClaudeFeaturedCard = React.memo(function ClaudeFeaturedCard() {
+  const [logoHovered, setLogoHovered] = useState(false);
+
+  return (
+    <motion.div
+      data-ocid="featured.claude_card"
+      initial={{ opacity: 0, y: 24 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ type: "spring", stiffness: 350, damping: 26, delay: 0.16 }}
+      className="rounded-2xl p-5 md:p-7 flex flex-col md:flex-row gap-5 md:gap-8 items-start md:items-center h-full"
+      style={{
+        background: "rgba(255,255,255,0.05)",
+        backdropFilter: "blur(40px)",
+        WebkitBackdropFilter: "blur(40px)",
+        border: "1.5px solid rgba(205,133,63,0.4)",
+        // Warm amber/orange accent for Claude — reduced glow intensity
+        boxShadow:
+          "0 0 10px rgba(205,133,63,0.04), 0 0 20px rgba(205,133,63,0.02), 0 8px 32px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.05)",
+      }}
+    >
+      <div
+        onMouseEnter={() => setLogoHovered(true)}
+        onMouseLeave={() => setLogoHovered(false)}
+        className="flex-shrink-0"
+        style={{ borderRadius: "16px" }}
+      >
+        <AILogoImg
+          src={CLAUDE_LOGO}
+          alt="Claude logo"
+          fallbackText="claude"
+          className="ai-logo w-20 h-20 md:w-24 md:h-24 object-contain rounded-2xl bg-black/30 p-2"
+          style={{
+            border: logoHovered
+              ? "1px solid rgba(205,133,63,0.4)"
+              : "1px solid rgba(205,133,63,0.18)",
+            boxShadow: logoHovered
+              ? "0 0 7px rgba(205,133,63,0.06), inset 0 0 3px rgba(205,133,63,0.02)"
+              : "0 0 3px rgba(205,133,63,0.03)",
+            transition: "border-color 0.2s, box-shadow 0.2s",
+          }}
+        />
+      </div>
+      <div className="flex-1">
+        <div className="flex items-center gap-2 mb-1">
+          <h2 className="text-2xl md:text-3xl font-bold text-white">Claude</h2>
+          <span className="text-sm font-medium" style={{ color: "#A7ADB7" }}>
+            Anthropic
+          </span>
+        </div>
+        <p className="text-sm md:text-base mb-3" style={{ color: "#A7ADB7" }}>
+          Powerful, safe, and helpful AI from Anthropic — excellent at reasoning
+          and complex tasks.
+        </p>
+        <div className="flex flex-wrap gap-2 text-xs">
+          {["Deep reasoning", "Safety-first", "Long context"].map((tag) => (
+            <span
+              key={tag}
+              className="px-2 py-0.5 rounded-md"
+              style={{
+                background: "rgba(205,133,63,0.08)",
+                color: "#CD853F",
+              }}
+            >
+              {tag}
+            </span>
+          ))}
+        </div>
+      </div>
+      <div className="w-full md:w-auto flex-shrink-0">
+        <a
+          data-ocid="featured.claude_primary_button"
+          href="https://claude.ai"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="w-full md:w-auto inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl text-base font-bold"
+          style={{
+            background: "rgba(205,133,63,0.15)",
+            border: "1.5px solid rgba(205,133,63,0.5)",
+            color: "#CD853F",
+          }}
+        >
+          Chat with Claude →
+        </a>
+      </div>
+    </motion.div>
+  );
+});
+
 const FeaturedSection = React.memo(function FeaturedSection() {
   return (
     <div className="mb-10">
@@ -401,42 +494,93 @@ const FeaturedSection = React.memo(function FeaturedSection() {
         <span
           className="text-xs font-bold tracking-widest uppercase px-3 py-1 rounded-full"
           style={{
-            background: "rgba(24,214,214,0.08)",
+            background: "rgba(24,214,214,0.07)",
             color: "#18D6D6",
-            border: "1px solid rgba(24,214,214,0.2)",
+            border: "1px solid rgba(24,214,214,0.18)",
           }}
         >
           ★ Featured AI
         </span>
       </div>
-      {/* Mobile: horizontal scroll-snap. Desktop: 2-column grid */}
+
+      {/* Mobile: horizontal scroll-snap centered. Desktop: 3-column grid */}
       <div
-        className="featured-scroll-container flex md:grid md:grid-cols-2 gap-4"
-        style={
-          {
-            overflowX: "auto",
-            overflowY: "hidden",
-            scrollSnapType: "x mandatory",
-            WebkitOverflowScrolling: "touch",
-            scrollbarWidth: "none",
-            msOverflowStyle: "none",
-            scrollPaddingLeft: "24px",
-            paddingBottom: "4px",
-          } as React.CSSProperties
-        }
+        className="featured-scroll-container"
+        style={{
+          display: "flex",
+          gap: "16px",
+          overflowX: "auto",
+          overflowY: "hidden",
+          scrollSnapType: "x mandatory",
+          WebkitOverflowScrolling:
+            "touch" as React.CSSProperties["WebkitOverflowScrolling"],
+          scrollbarWidth: "none" as React.CSSProperties["scrollbarWidth"],
+          msOverflowStyle: "none" as React.CSSProperties["msOverflowStyle"],
+          // Padding creates peek of adjacent cards and centers snap target
+          paddingLeft: "24px",
+          paddingRight: "24px",
+          paddingBottom: "4px",
+          scrollPaddingLeft: "24px",
+          scrollPaddingRight: "24px",
+        }}
       >
+        <style>
+          {".featured-scroll-container::-webkit-scrollbar { display: none; }"}
+        </style>
+
+        {/* Grok */}
         <div
-          className="shrink-0 w-[calc(100vw-48px)] md:w-auto md:h-full"
-          style={{ scrollSnapAlign: "start", scrollSnapStop: "always" }}
+          className="shrink-0 md:flex-1"
+          style={{
+            // Mobile: card takes full viewport minus horizontal padding
+            width: "calc(100vw - 48px)",
+            scrollSnapAlign: "center",
+            scrollSnapStop: "always",
+          }}
         >
           <GrokFeaturedCard />
         </div>
+
+        {/* Caffeine.ai */}
         <div
-          className="shrink-0 w-[calc(100vw-48px)] md:w-auto md:h-full"
-          style={{ scrollSnapAlign: "start", scrollSnapStop: "always" }}
+          className="shrink-0 md:flex-1"
+          style={{
+            width: "calc(100vw - 48px)",
+            scrollSnapAlign: "center",
+            scrollSnapStop: "always",
+          }}
         >
           <CaffeineFeaturedCard />
         </div>
+
+        {/* Claude */}
+        <div
+          className="shrink-0 md:flex-1"
+          style={{
+            width: "calc(100vw - 48px)",
+            scrollSnapAlign: "center",
+            scrollSnapStop: "always",
+          }}
+        >
+          <ClaudeFeaturedCard />
+        </div>
+      </div>
+
+      {/* Dot indicators for mobile */}
+      <div className="flex justify-center gap-2 mt-3 md:hidden">
+        {[0, 1, 2].map((i) => (
+          <div
+            key={i}
+            className="rounded-full"
+            style={{
+              width: i === 0 ? "16px" : "6px",
+              height: "6px",
+              background:
+                i === 0 ? "rgba(24,214,214,0.7)" : "rgba(255,255,255,0.2)",
+              transition: "width 0.3s",
+            }}
+          />
+        ))}
       </div>
     </div>
   );
