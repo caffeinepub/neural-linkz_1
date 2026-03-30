@@ -1,5 +1,5 @@
 import { motion } from "motion/react";
-import React, { useEffect, useRef, useState } from "react";
+import React, { useState } from "react";
 import { AI_MODELS, GROK_FALLBACK, GROK_LOGO } from "../data";
 import type { AIModel } from "../types";
 
@@ -243,6 +243,7 @@ const GrokFeaturedCard = React.memo(function GrokFeaturedCard() {
         backdropFilter: "blur(40px)",
         WebkitBackdropFilter: "blur(40px)",
         border: "1.5px solid rgba(24,214,214,0.4)",
+        // Reduced glow: ~45% less intensity
         boxShadow:
           "0 0 10px rgba(24,214,214,0.04), 0 0 20px rgba(24,214,214,0.02), 0 8px 32px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.05)",
       }}
@@ -325,6 +326,7 @@ const CaffeineFeaturedCard = React.memo(function CaffeineFeaturedCard() {
         backdropFilter: "blur(40px)",
         WebkitBackdropFilter: "blur(40px)",
         border: "1.5px solid rgba(204,255,0,0.4)",
+        // Reduced glow: ~45% less intensity
         boxShadow:
           "0 0 10px rgba(204,255,0,0.04), 0 0 20px rgba(204,255,0,0.02), 0 8px 32px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.05)",
       }}
@@ -412,6 +414,7 @@ const ClaudeFeaturedCard = React.memo(function ClaudeFeaturedCard() {
         backdropFilter: "blur(40px)",
         WebkitBackdropFilter: "blur(40px)",
         border: "1.5px solid rgba(205,133,63,0.4)",
+        // Warm amber/orange accent for Claude — reduced glow intensity
         boxShadow:
           "0 0 10px rgba(205,133,63,0.04), 0 0 20px rgba(205,133,63,0.02), 0 8px 32px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.05)",
       }}
@@ -484,44 +487,7 @@ const ClaudeFeaturedCard = React.memo(function ClaudeFeaturedCard() {
   );
 });
 
-/**
- * FeaturedSection — horizontally swipeable on mobile, 3-column grid on desktop.
- *
- * Centering fix: each card wrapper is `min-width: 100%` of the scroll container
- * (no gap, no padding offset), with `scrollSnapAlign: start`. On mount we
- * imperatively reset scrollLeft to 0 so the first card is always flush-left
- * and perfectly fills the viewport.
- *
- * Swipe indicator: an onScroll handler tracks the active card index and
- * animates the "-••" pill/dot indicator below the cards.
- */
-function FeaturedSection() {
-  const scrollRef = useRef<HTMLDivElement>(null);
-  const [activeIndex, setActiveIndex] = useState(0);
-
-  // Force scrollLeft = 0 on mount so Grok is always perfectly centered on load.
-  useEffect(() => {
-    const el = scrollRef.current;
-    if (!el) return;
-    // Use requestAnimationFrame to ensure layout has settled before resetting.
-    requestAnimationFrame(() => {
-      el.scrollLeft = 0;
-    });
-  }, []);
-
-  // Track which card is in view by comparing scrollLeft to card width.
-  const handleScroll = () => {
-    const el = scrollRef.current;
-    if (!el) return;
-    const cardWidth = el.offsetWidth;
-    if (cardWidth === 0) return;
-    const index = Math.round(el.scrollLeft / cardWidth);
-    setActiveIndex(Math.max(0, Math.min(2, index)));
-  };
-
-  const ACCENT_COLORS = ["#18D6D6", "#CCFF00", "#CD853F"];
-  const activeColor = ACCENT_COLORS[activeIndex];
-
+const FeaturedSection = React.memo(function FeaturedSection() {
   return (
     <div className="mb-10">
       <div className="flex justify-center md:justify-start mb-3">
@@ -537,109 +503,88 @@ function FeaturedSection() {
         </span>
       </div>
 
-      {/*
-        Outer wrapper: clips overflow on mobile, becomes a plain flex grid on md+.
-        On mobile the scroll container fills 100% so each card snaps exactly.
-      */}
+      {/* Mobile: horizontal scroll-snap centered. Desktop: 3-column grid */}
       <div
-        className="md:grid md:grid-cols-3 md:gap-4"
-        style={{ overflow: "hidden" }}
+        className="featured-scroll-container"
+        style={{
+          display: "flex",
+          gap: "16px",
+          overflowX: "auto",
+          overflowY: "hidden",
+          scrollSnapType: "x mandatory",
+          WebkitOverflowScrolling:
+            "touch" as React.CSSProperties["WebkitOverflowScrolling"],
+          scrollbarWidth: "none" as React.CSSProperties["scrollbarWidth"],
+          msOverflowStyle: "none" as React.CSSProperties["msOverflowStyle"],
+          // Padding creates peek of adjacent cards and centers snap target
+          paddingLeft: "24px",
+          paddingRight: "24px",
+          paddingBottom: "4px",
+          scrollPaddingLeft: "24px",
+          scrollPaddingRight: "24px",
+        }}
       >
-        {/* Scroll container — mobile only */}
+        <style>
+          {".featured-scroll-container::-webkit-scrollbar { display: none; }"}
+        </style>
+
+        {/* Grok */}
         <div
-          ref={scrollRef}
-          onScroll={handleScroll}
-          className="md:contents"
+          className="shrink-0 md:flex-1"
           style={{
-            // Mobile: full-width scroll track, each card = 100% width → perfect centering
-            display: "flex",
-            overflowX: "auto",
-            overflowY: "hidden",
-            scrollSnapType: "x mandatory",
-            WebkitOverflowScrolling:
-              "touch" as React.CSSProperties["WebkitOverflowScrolling"],
-            scrollbarWidth: "none" as React.CSSProperties["scrollbarWidth"],
-            msOverflowStyle: "none" as React.CSSProperties["msOverflowStyle"],
-            // No padding / gap here — card wrappers are min-width:100% so
-            // card 0 starts exactly at x=0 with no right-shift.
+            // Mobile: card takes full viewport minus horizontal padding
+            width: "calc(100vw - 48px)",
+            scrollSnapAlign: "center",
+            scrollSnapStop: "always",
           }}
         >
-          <style>{".featured-track::-webkit-scrollbar{display:none}"}</style>
+          <GrokFeaturedCard />
+        </div>
 
-          {/* Grok */}
-          <div
-            className="shrink-0"
-            style={{
-              minWidth: "100%",
-              // Horizontal padding on mobile for breathing room (does NOT shift snap)
-              paddingLeft: "0px",
-              paddingRight: "0px",
-              scrollSnapAlign: "start",
-              scrollSnapStop: "always",
-            }}
-          >
-            <GrokFeaturedCard />
-          </div>
+        {/* Caffeine.ai */}
+        <div
+          className="shrink-0 md:flex-1"
+          style={{
+            width: "calc(100vw - 48px)",
+            scrollSnapAlign: "center",
+            scrollSnapStop: "always",
+          }}
+        >
+          <CaffeineFeaturedCard />
+        </div>
 
-          {/* Caffeine.ai */}
-          <div
-            className="shrink-0"
-            style={{
-              minWidth: "100%",
-              scrollSnapAlign: "start",
-              scrollSnapStop: "always",
-            }}
-          >
-            <CaffeineFeaturedCard />
-          </div>
-
-          {/* Claude */}
-          <div
-            className="shrink-0"
-            style={{
-              minWidth: "100%",
-              scrollSnapAlign: "start",
-              scrollSnapStop: "always",
-            }}
-          >
-            <ClaudeFeaturedCard />
-          </div>
+        {/* Claude */}
+        <div
+          className="shrink-0 md:flex-1"
+          style={{
+            width: "calc(100vw - 48px)",
+            scrollSnapAlign: "center",
+            scrollSnapStop: "always",
+          }}
+        >
+          <ClaudeFeaturedCard />
         </div>
       </div>
 
-      {/*
-        Animated swipe indicator — visible on mobile only.
-        Active dot expands into a pill ("–") and takes the accent color of the
-        current card. Inactive dots are small circles.
-      */}
-      <div
-        className="flex justify-center items-center gap-[6px] mt-4 md:hidden"
-        aria-label="Featured card indicator"
-      >
-        {[0, 1, 2].map((i) => {
-          const isActive = i === activeIndex;
-          return (
-            <motion.div
-              key={i}
-              animate={{
-                width: isActive ? 22 : 6,
-                opacity: isActive ? 1 : 0.3,
-                backgroundColor: isActive ? activeColor : "#ffffff",
-              }}
-              transition={{ type: "spring", stiffness: 400, damping: 28 }}
-              style={{
-                height: 6,
-                borderRadius: 3,
-                // Subtle glow on active
-                boxShadow: isActive ? `0 0 6px ${activeColor}80` : "none",
-              }}
-            />
-          );
-        })}
+      {/* Dot indicators for mobile */}
+      <div className="flex justify-center gap-2 mt-3 md:hidden">
+        {[0, 1, 2].map((i) => (
+          <div
+            key={i}
+            className="rounded-full"
+            style={{
+              width: i === 0 ? "16px" : "6px",
+              height: "6px",
+              background:
+                i === 0 ? "rgba(24,214,214,0.7)" : "rgba(255,255,255,0.2)",
+              transition: "width 0.3s",
+            }}
+          />
+        ))}
       </div>
     </div>
   );
-}
+});
 
 function Hero() {
   return (
