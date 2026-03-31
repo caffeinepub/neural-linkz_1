@@ -1,5 +1,5 @@
 import { motion } from "motion/react";
-import React, { useState } from "react";
+import React, { useState, useRef, useEffect, useCallback } from "react";
 import { AI_MODELS, GROK_FALLBACK, GROK_LOGO } from "../data";
 import type { AIModel } from "../types";
 
@@ -487,7 +487,37 @@ const ClaudeFeaturedCard = React.memo(function ClaudeFeaturedCard() {
   );
 });
 
+const FEATURED_ACCENT_COLORS = [
+  "rgba(24,214,214,0.9)", // Grok – cyan
+  "rgba(204,255,0,0.9)", // Caffeine.ai – lime
+  "rgba(245,166,35,0.9)", // Claude – amber
+];
+
 const FeaturedSection = React.memo(function FeaturedSection() {
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const [activeIndex, setActiveIndex] = useState(0);
+
+  // Force scrollLeft = 0 on mount so Grok is perfectly centered on first load.
+  // Double rAF waits for layout + paint to complete before resetting position.
+  useEffect(() => {
+    const el = scrollRef.current;
+    if (!el) return;
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        if (el) el.scrollLeft = 0;
+      });
+    });
+  }, []);
+
+  // Track which card is active as the user swipes.
+  // Each card is exactly `el.offsetWidth` wide (100% of container), so index = round(scrollLeft / width).
+  const handleScroll = useCallback(() => {
+    const el = scrollRef.current;
+    if (!el || el.offsetWidth === 0) return;
+    const index = Math.round(el.scrollLeft / el.offsetWidth);
+    setActiveIndex(Math.max(0, Math.min(2, index)));
+  }, []);
+
   return (
     <div className="mb-10">
       <div className="flex justify-center md:justify-start mb-3">
@@ -503,39 +533,52 @@ const FeaturedSection = React.memo(function FeaturedSection() {
         </span>
       </div>
 
-      {/* Mobile: horizontal scroll-snap centered. Desktop: 3-column grid */}
+      {/*
+        Mobile scroll strategy:
+        - Container has NO padding/gap (zero offset) so scrollLeft=0 puts first card flush left.
+        - Each card wrapper is width:100% of the container — at scrollLeft=0 the first card
+          fills the container exactly, visually centered in the viewport.
+        - scrollSnapAlign:"start" is the most reliable alignment for this pattern.
+
+        Desktop: CSS media query overrides overflow to visible and sets flex:1 + gap so all
+        three cards are shown side-by-side without any scrolling.
+      */}
+      <style>{`
+        .nl-feat-wrap { overflow-x: auto; overflow-y: hidden; }
+        .nl-feat-wrap::-webkit-scrollbar { display: none; }
+        @media (min-width: 768px) {
+          .nl-feat-wrap { overflow: visible !important; gap: 16px !important; }
+          .nl-feat-item {
+            width: auto !important;
+            flex: 1 !important;
+            scroll-snap-align: none !important;
+            scroll-snap-stop: normal !important;
+          }
+        }
+      `}</style>
+
       <div
-        className="featured-scroll-container"
+        ref={scrollRef}
+        onScroll={handleScroll}
+        className="nl-feat-wrap flex"
         style={{
-          display: "flex",
-          gap: "16px",
-          overflowX: "auto",
-          overflowY: "hidden",
           scrollSnapType: "x mandatory",
           WebkitOverflowScrolling:
             "touch" as React.CSSProperties["WebkitOverflowScrolling"],
           scrollbarWidth: "none" as React.CSSProperties["scrollbarWidth"],
           msOverflowStyle: "none" as React.CSSProperties["msOverflowStyle"],
-          // Padding creates peek of adjacent cards and centers snap target
-          paddingLeft: "24px",
-          paddingRight: "24px",
+          gap: 0,
           paddingBottom: "4px",
-          scrollPaddingLeft: "24px",
-          scrollPaddingRight: "24px",
         }}
       >
-        <style>
-          {".featured-scroll-container::-webkit-scrollbar { display: none; }"}
-        </style>
-
         {/* Grok */}
         <div
-          className="shrink-0 md:flex-1"
+          className="nl-feat-item shrink-0"
           style={{
-            // Mobile: card takes full viewport minus horizontal padding
-            width: "calc(100vw - 48px)",
-            scrollSnapAlign: "center",
+            width: "100%",
+            scrollSnapAlign: "start",
             scrollSnapStop: "always",
+            boxSizing: "border-box",
           }}
         >
           <GrokFeaturedCard />
@@ -543,11 +586,12 @@ const FeaturedSection = React.memo(function FeaturedSection() {
 
         {/* Caffeine.ai */}
         <div
-          className="shrink-0 md:flex-1"
+          className="nl-feat-item shrink-0"
           style={{
-            width: "calc(100vw - 48px)",
-            scrollSnapAlign: "center",
+            width: "100%",
+            scrollSnapAlign: "start",
             scrollSnapStop: "always",
+            boxSizing: "border-box",
           }}
         >
           <CaffeineFeaturedCard />
@@ -555,29 +599,35 @@ const FeaturedSection = React.memo(function FeaturedSection() {
 
         {/* Claude */}
         <div
-          className="shrink-0 md:flex-1"
+          className="nl-feat-item shrink-0"
           style={{
-            width: "calc(100vw - 48px)",
-            scrollSnapAlign: "center",
+            width: "100%",
+            scrollSnapAlign: "start",
             scrollSnapStop: "always",
+            boxSizing: "border-box",
           }}
         >
           <ClaudeFeaturedCard />
         </div>
       </div>
 
-      {/* Dot indicators for mobile */}
-      <div className="flex justify-center gap-2 mt-3 md:hidden">
+      {/* Animated swipe indicator — mobile only.
+          Active dot expands to a pill and takes the card's accent color. */}
+      <div className="flex justify-center items-center gap-2 mt-3 md:hidden">
         {[0, 1, 2].map((i) => (
           <div
             key={i}
-            className="rounded-full"
             style={{
-              width: i === 0 ? "16px" : "6px",
               height: "6px",
+              borderRadius: "3px",
+              width: i === activeIndex ? "20px" : "6px",
               background:
-                i === 0 ? "rgba(24,214,214,0.7)" : "rgba(255,255,255,0.2)",
-              transition: "width 0.3s",
+                i === activeIndex
+                  ? FEATURED_ACCENT_COLORS[i]
+                  : "rgba(255,255,255,0.18)",
+              transition:
+                "width 0.35s cubic-bezier(0.4, 0, 0.2, 1), background 0.35s ease",
+              willChange: "width",
             }}
           />
         ))}
