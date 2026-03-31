@@ -579,6 +579,9 @@ const LAST_SUCCESS_KEY = "nl_benchmarks_last_success";
 // TODO (ICP Canister): Replace with canister stable-memory storage when backend is ready.
 const CACHE_DATA_KEY = "nl_benchmarks_cache_v1";
 
+// localStorage key for persisting the last successfully fetched live leaderboard rows
+const LIVE_DATA_KEY = "nl_benchmarks_live_rows_v1";
+
 // Auto-fetch every 48 hours when page is visible
 const FETCH_INTERVAL_MS = 48 * 60 * 60 * 1000;
 
@@ -680,6 +683,31 @@ function loadFreshSnapshot(): CacheEntry | null {
   return fresh[fresh.length - 1];
 }
 
+/**
+ * loadLiveCache — Returns the last successfully fetched live leaderboard rows
+ * from localStorage, or null if missing, corrupt, or older than 30 days.
+ */
+function loadLiveCache():
+  | { model: string; provider: string; elo: number }[]
+  | null {
+  try {
+    const raw = localStorage.getItem(LIVE_DATA_KEY);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw) as {
+      rows: { model: string; provider: string; elo: number }[];
+      ts: number;
+    };
+    if (!parsed?.rows || !Array.isArray(parsed.rows)) return null;
+    if (Date.now() - parsed.ts > CACHE_MAX_AGE_MS) {
+      localStorage.removeItem(LIVE_DATA_KEY);
+      return null;
+    }
+    return parsed.rows;
+  } catch {
+    return null;
+  }
+}
+
 // ─── useBenchmarkData ────────────────────────────────────────────────────────
 // Data flow:
 //   1. On mount: run passive cache cleanup (removes entries > 30 days old).
@@ -708,6 +736,8 @@ function useBenchmarkData() {
   const [loading, setLoading] = useState(false);
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
   const [fetchSource, setFetchSource] = useState<FetchSource>("cached");
+  // arenaData starts as FALLBACK; updated in-place when a live fetch succeeds
+  const [arenaData, setArenaData] = useState(FALLBACK_ARENA_DATA);
   const [changedRows, setChangedRows] = useState<Set<string>>(new Set());
   const [dataVersion, setDataVersion] = useState(0);
   const prevElosRef = useRef<Record<string, number>>({});
@@ -719,92 +749,179 @@ function useBenchmarkData() {
 
     // Skip if 48h interval hasn't elapsed and fetch wasn't forced by user
     if (!force && now - last < FETCH_INTERVAL_MS) {
-      // Restore last known timestamp for the "Last updated" display
       if (last > 0) setLastUpdated(new Date(last));
       return;
     }
 
     setLoading(true);
 
+    // Prioritize live data from endpoints — only use cache on complete failure
+
     try {
-      // ── Live fetch from Chatbot Arena / LMArena sources ───────────────────
-      // Source priority: lmarena → artificialanalysis → openllm
+      // ── Attempt live fetches in priority order ────────────────────────────
+      // 1. Primary:   https://api.wulong.dev/
+      // 2. Secondary: https://huggingface.co/spaces/lmarena-ai/arena-leaderboard
+      // 3. Tertiary:  https://arena.ai/leaderboard
+      // Only fall back to localStorage cache if ALL three fail.
       //
-      // TODO (ICP): Replace these fetch() calls with:
-      //   const result = await actor.getBenchmarkData();
-      //   source = result.source; — canister handles HTTP outcalls server-side
-      const [r1, r2, r3] = await Promise.allSettled([
-        // Primary: Chatbot Arena / LMArena (https://lmarena.ai / arena.ai)
-        fetch("https://huggingface.co/spaces/lmarena-ai/chatbot-arena", {
-          signal: AbortSignal.timeout(4000),
-        }).catch(() => null),
+      // TODO (ICP): Replace these fetch() calls with actor.getBenchmarkData()
+      //   when the ICP canister backend is ready to handle HTTP outcalls.
 
-        // Secondary: Artificial Analysis leaderboard
-        fetch("https://artificialanalysis.ai/leaderboards/models", {
-          signal: AbortSignal.timeout(4000),
-        }).catch(() => null),
+      const FETCH_TIMEOUT = 9000; // 9-second timeout per request to prevent hanging
 
-        // Tertiary: Hugging Face Open LLM Leaderboard API
-        fetch(
-          "https://huggingface.co/api/datasets/open-llm-leaderboard/results?limit=5",
-          { signal: AbortSignal.timeout(5000) },
-        ).catch(() => null),
-      ]);
-
-      // Determine which source responded successfully
-      let source: FetchSource = "cached";
-      if (r1.status === "fulfilled" && r1.value && (r1.value as Response).ok) {
-        source = "lmarena";
-      } else if (
-        r2.status === "fulfilled" &&
-        r2.value &&
-        (r2.value as Response).ok
-      ) {
-        source = "artificialanalysis";
-      } else if (
-        r3.status === "fulfilled" &&
-        r3.value &&
-        (r3.value as Response).ok
-      ) {
-        source = "openllm";
+      interface LiveRow {
+        model: string;
+        provider: string;
+        elo: number;
       }
 
-      // ── Persist successful fetch ──────────────────────────────────────────
-      // saveDataSnapshot() stores this entry AND automatically deletes any
-      // entries older than 30 days — storage is always self-cleaning.
+      /** Try to extract a leaderboard array from any JSON API response. */
+      async function tryParseJSON(res: Response): Promise<LiveRow[] | null> {
+        try {
+          const json = (await res.json()) as Record<string, unknown>;
+          const arr = Array.isArray(json)
+            ? (json as unknown[])
+            : Array.isArray(json?.data)
+              ? (json.data as unknown[])
+              : Array.isArray((json as Record<string, unknown>)?.leaderboard)
+                ? ((json as Record<string, unknown>).leaderboard as unknown[])
+                : Array.isArray((json as Record<string, unknown>)?.models)
+                  ? ((json as Record<string, unknown>).models as unknown[])
+                  : null;
+          if (!arr || arr.length === 0) return null;
+          const rows: LiveRow[] = [];
+          for (const item of arr) {
+            const obj = item as Record<string, unknown>;
+            const model = String(
+              obj.model_name ?? obj.model ?? obj.name ?? obj.chatbot_name ?? "",
+            );
+            const provider = String(
+              obj.organization ?? obj.provider ?? obj.org ?? obj.company ?? "",
+            );
+            const elo = Number(
+              obj.elo ?? obj.elo_score ?? obj.arena_score ?? obj.score ?? 0,
+            );
+            if (model && elo > 0) rows.push({ model, provider, elo });
+          }
+          return rows.length >= 3 ? rows : null;
+        } catch {
+          return null;
+        }
+      }
+
+      let liveRows: LiveRow[] | null = null;
+      let source: FetchSource = "cached";
+
+      // ── Primary: api.wulong.dev ───────────────────────────────────────────
+      try {
+        const r = await fetch("https://api.wulong.dev/", {
+          signal: AbortSignal.timeout(FETCH_TIMEOUT),
+        });
+        if (r.ok) {
+          liveRows = await tryParseJSON(r);
+          if (liveRows) source = "wulong";
+        }
+      } catch {
+        /* network / CORS / timeout — try next endpoint */
+      }
+
+      // ── Secondary: HuggingFace LMArena leaderboard ───────────────────────
+      if (!liveRows) {
+        try {
+          const r = await fetch(
+            "https://huggingface.co/spaces/lmarena-ai/arena-leaderboard",
+            { signal: AbortSignal.timeout(FETCH_TIMEOUT) },
+          );
+          if (r.ok) {
+            liveRows = await tryParseJSON(r);
+            if (liveRows) source = "lmarena";
+          }
+        } catch {
+          /* network / CORS / timeout — try next endpoint */
+        }
+      }
+
+      // ── Tertiary: arena.ai leaderboard ───────────────────────────────────
+      if (!liveRows) {
+        try {
+          const r = await fetch("https://arena.ai/leaderboard", {
+            signal: AbortSignal.timeout(FETCH_TIMEOUT),
+          });
+          if (r.ok) {
+            liveRows = await tryParseJSON(r);
+            if (liveRows) source = "arena";
+          }
+        } catch {
+          /* network / CORS / timeout — fall back to cache below */
+        }
+      }
+
+      // ── Persist fetch attempt timestamp and snapshot metadata ─────────────
       const fetchTime = Date.now();
       localStorage.setItem(LAST_FETCH_KEY, String(fetchTime));
-
-      // Save snapshot and clean up old entries (> 30 days) in one call
-      // TODO (ICP): Replace with await actor.storeBenchmarkSnapshot({ source, storedAt: fetchTime })
       saveDataSnapshot(source);
-
-      // Keep legacy LAST_SUCCESS_KEY for backward compatibility with older installs
       localStorage.setItem(
         LAST_SUCCESS_KEY,
         JSON.stringify({ ts: fetchTime, source }),
       );
 
+      // ── If live rows obtained, persist them for offline use ───────────────
+      if (liveRows) {
+        try {
+          localStorage.setItem(
+            LIVE_DATA_KEY,
+            JSON.stringify({ rows: liveRows, ts: fetchTime }),
+          );
+        } catch {
+          /* storage quota — ignore */
+        }
+      }
+
+      // Prioritize live data from endpoints — only use cache on complete failure
+      const rowsToUse = liveRows ?? loadLiveCache();
+
       startTransition(() => {
         setFetchSource(source);
         setLastUpdated(new Date(fetchTime));
 
-        if (source !== "cached") {
-          // Highlight any rows whose ELO changed since the last check
+        if (rowsToUse) {
+          // Map live rows onto the FALLBACK shape, preserving extra benchmark fields
+          const merged = rowsToUse
+            .slice()
+            .sort((a, b) => b.elo - a.elo)
+            .map((row, i) => {
+              const fallback = FALLBACK_ARENA_DATA.find(
+                (f) => f.model.toLowerCase() === row.model.toLowerCase(),
+              );
+              return {
+                rank: i + 1,
+                model: row.model,
+                provider: row.provider || fallback?.provider || "",
+                elo: row.elo,
+                gpqa: fallback?.gpqa ?? "—",
+                sweBench: fallback?.sweBench ?? "—",
+                arcAgi: fallback?.arcAgi ?? "—",
+                context: fallback?.context ?? "—",
+                link: fallback?.link ?? "#",
+              };
+            });
+          if (merged.length > 0) setArenaData(merged);
+
+          // Highlight rows whose ELO changed since last check
           const newChanged = new Set<string>();
-          for (const row of FALLBACK_ARENA_DATA) {
+          for (const row of merged) {
             const prev = prevElosRef.current[row.model];
-            if (prev !== undefined && Math.abs(prev - (row.elo ?? 0)) > 1) {
+            if (prev !== undefined && Math.abs(prev - row.elo) > 1) {
               newChanged.add(row.model);
             }
-            prevElosRef.current[row.model] = row.elo ?? 0;
+            prevElosRef.current[row.model] = row.elo;
           }
           if (newChanged.size > 0) {
             setChangedRows(newChanged);
             setTimeout(() => setChangedRows(new Set()), 3000);
           }
         } else {
-          // Initialize ELO baseline from fallback data
+          // All live fetches failed AND no valid cache — use built-in fallback data
           for (const row of FALLBACK_ARENA_DATA) {
             prevElosRef.current[row.model] = row.elo ?? 0;
           }
@@ -812,23 +929,40 @@ function useBenchmarkData() {
         setDataVersion((v) => v + 1);
       });
     } catch {
-      // ── Fetch failure: fall back to most recent stored snapshot ──────────
-      // loadFreshSnapshot() returns the newest entry younger than 30 days,
-      // or null if all entries have expired or none exist.
-      // Timestamp is NOT updated, so the next page visit will retry automatically.
-      //
-      // TODO (ICP): On canister query failure, use:
-      //   const snapshot = await actor.getLatestBenchmarkSnapshot();
+      // ── Unexpected error: restore last known display state ────────────────
+      // Prioritize live data from endpoints — only use cache on complete failure
       const snapshot = loadFreshSnapshot();
       if (snapshot) {
-        // Use the stored snapshot metadata for the UI display
         startTransition(() => {
           setFetchSource(snapshot.source);
           setLastUpdated(new Date(snapshot.storedAt));
         });
       }
-      // If no valid snapshot exists (all expired or first run), UI keeps the
-      // built-in FALLBACK_ARENA_DATA — no disruption, no error shown to user
+      const cachedRows = loadLiveCache();
+      if (cachedRows) {
+        const merged = cachedRows
+          .slice()
+          .sort((a, b) => b.elo - a.elo)
+          .map((row, i) => {
+            const fallback = FALLBACK_ARENA_DATA.find(
+              (f) => f.model.toLowerCase() === row.model.toLowerCase(),
+            );
+            return {
+              rank: i + 1,
+              model: row.model,
+              provider: row.provider || fallback?.provider || "",
+              elo: row.elo,
+              gpqa: fallback?.gpqa ?? "—",
+              sweBench: fallback?.sweBench ?? "—",
+              arcAgi: fallback?.arcAgi ?? "—",
+              context: fallback?.context ?? "—",
+              link: fallback?.link ?? "#",
+            };
+          });
+        if (merged.length > 0) {
+          startTransition(() => setArenaData(merged));
+        }
+      }
     } finally {
       setLoading(false);
     }
@@ -901,7 +1035,7 @@ function useBenchmarkData() {
     // TODO (ICP): Replace these with live data returned from canister query
     // When the canister has real data, swap FALLBACK_ARENA_DATA with the
     // parsed canister response here.
-    arenaData: FALLBACK_ARENA_DATA,
+    arenaData,
     intelligenceData: FALLBACK_INTELLIGENCE_DATA,
     openSourceData: FALLBACK_OPEN_SOURCE_DATA,
     arenaHighlights: FALLBACK_ARENA_HIGHLIGHTS,
@@ -968,10 +1102,10 @@ function RelativeTime({ date }: { date: Date | null }) {
 
 function SourceBadge({ source }: { source: FetchSource }) {
   const labels: Record<FetchSource, string> = {
+    wulong: "Wulong API • Live",
     lmarena: "LMArena • Live",
-    artificialanalysis: "Artificial Analysis • Live",
-    openllm: "Open LLM • Live",
-    cached: "March 2026 • Cached",
+    arena: "Arena.ai • Live",
+    cached: "Cached Data",
   };
   const isLive = source !== "cached";
   return (

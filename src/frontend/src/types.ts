@@ -26,8 +26,4 @@ export interface OSModel {
   initials: string;
 }
 
-export type FetchSource =
-  | "lmarena"
-  | "artificialanalysis"
-  | "openllm"
-  | "cached";
+export type FetchSource = "wulong" | "lmarena" | "arena" | "cached";
